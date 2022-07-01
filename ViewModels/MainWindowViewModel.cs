@@ -38,7 +38,7 @@ public class MainWindowViewModel : ViewModelBase
     public NotifyProperty<PixelData[]> Pixels { get; } = new();
     public NotifyProperty<int> Width { get; } = new(70);
     public NotifyProperty<int> Height { get; } = new(50);
-    public NotifyProperty<int> MaxColors { get; } = new(64);
+    public NotifyProperty<int?> MaxColors { get; } = new(null);
     public NotifyProperty<int> WallOffsetLeft { get; } = new(5);
     public NotifyProperty<int> WallOffsetRight { get; } = new(5);
     public NotifyProperty<int> WallOffsetTop { get; } = new(5);
@@ -69,10 +69,14 @@ public class MainWindowViewModel : ViewModelBase
 
     private void UpdatePreview()
     {
-        Pixels.Value = OriginalImage.Value
+        var bitmapSource = OriginalImage.Value
             .Resize(Width.Value, Height.Value)
-            .Format(PixelFormats.Rgb24)
-            .KNNReduceColors(MaxColors)
+            .Format(PixelFormats.Rgb24);
+
+        if (MaxColors.Value.HasValue)
+            bitmapSource = bitmapSource.KNNReduceColors(MaxColors.Value.Value);
+
+        Pixels.Value = bitmapSource
             .GetPixelData()
             .ToArray();
     }

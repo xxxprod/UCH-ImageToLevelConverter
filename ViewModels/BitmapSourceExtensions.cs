@@ -17,7 +17,7 @@ public static class BitmapSourceExtensions
 {
     public static void WriteTransformedBitmapToFile<T>(this BitmapSource bitmapSource, string fileName) where T : BitmapEncoder, new()
     {
-        var frame = BitmapFrame.Create(bitmapSource); ;
+        var frame = BitmapFrame.Create(bitmapSource);
         var encoder = new T();
         encoder.Frames.Add(frame);
         using var fs = new FileStream(fileName, FileMode.Create);
