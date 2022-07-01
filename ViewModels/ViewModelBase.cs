@@ -1,3 +1,4 @@
+using System;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 
@@ -10,5 +11,11 @@ public class ViewModelBase : INotifyPropertyChanged
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
     {
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+    }
+
+    protected void RegisterPropertyChangedCallback(Action changeCallback, params INotifyPropertyChanged[] sources)
+    {
+        foreach (INotifyPropertyChanged source in sources) 
+            source.PropertyChanged += (_, _) => changeCallback();
     }
 }

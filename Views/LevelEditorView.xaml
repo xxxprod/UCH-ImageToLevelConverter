@@ -1,0 +1,141 @@
+﻿<Window x:Class="UCH_ImageToLevelConverter.Views.LevelEditorView"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
+        xmlns:linq="clr-namespace:System.Xml.Linq;assembly=System.Xml.XDocument"
+        xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
+        mc:Ignorable="d"
+        d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}"
+        Title="Level Editor" Height="650" Width="1000">
+
+    <Window.Resources>
+        <Style x:Key="ButtonStyle" TargetType="Button">
+            <Style.Setters>
+                <Setter Property="Padding" Value="3,1,3,1" />
+                <Setter Property="Margin" Value="3" />
+            </Style.Setters>
+        </Style>
+        <Style x:Key="TextBoxStyle" TargetType="TextBox">
+            <Style.Setters>
+                <Setter Property="Padding" Value="3,1,3,1" />
+                <Setter Property="Margin" Value="3" />
+                <Setter Property="VerticalContentAlignment" Value="Center" />
+            </Style.Setters>
+        </Style>
+        <Style x:Key="NumberTextBoxStyle" BasedOn="{StaticResource TextBoxStyle}"  TargetType="TextBox">
+            <Style.Setters>
+                <Setter Property="HorizontalContentAlignment" Value="Right" />
+            </Style.Setters>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="100" />
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <ToolBar Grid.ColumnSpan="4"></ToolBar>
+
+        <GridSplitter Grid.Column="0" Grid.Row="2" VerticalAlignment="Stretch" Width="5" />
+        <GridSplitter Grid.Column="2" Grid.Row="2" VerticalAlignment="Stretch" Width="5" />
+
+
+        <ScrollViewer Grid.Column="0" Grid.Row="2" Margin="14" VerticalScrollBarVisibility="Auto">
+            <UniformGrid Columns="2" VerticalAlignment="Top">
+
+                <Label Content="Wall Offsets" FontWeight="Bold" />
+                <Label />
+
+                <Label Content="Left:" />
+                <TextBox Text="{Binding WallOffsetLeft.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                <Label Content="Right:" />
+                <TextBox Text="{Binding WallOffsetRight.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                <Label Content="Top:" />
+                <TextBox Text="{Binding WallOffsetTop.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                <Label Content="Bottom:" />
+                <TextBox Text="{Binding WallOffsetBottom.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+
+            </UniformGrid>
+        </ScrollViewer>
+
+        <Grid Grid.Column="1" Grid.Row="2" Name="PixelContainer" SizeChanged="PixelContainer_OnSizeChanged" Background="DimGray">
+            <ItemsControl ItemsSource="{Binding Pixels.Value}" Name="PixelGrid" Loaded="OnPixelGridLoaded">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height.Value}"
+                              tools:GridHelpers.ColumnCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Width.Value}">
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+
+                <ItemsControl.ItemContainerStyle>
+                    <Style>
+                        <Style.Setters>
+                            <Setter Property="Grid.Row" Value="{Binding Row}" />
+                            <Setter Property="Grid.Column" Value="{Binding Col}" />
+                        </Style.Setters>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type linq:XElement}">
+
+                        <Control Name="Pixel" SnapsToDevicePixels="True">
+                            <Control.Style>
+                                <Style TargetType="Control">
+                                    <Style.Setters>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate>
+                                                    <Border BorderThickness="0.2">
+                                                        <Border.Background>
+                                                            <SolidColorBrush Color="{Binding Color}" />
+                                                        </Border.Background>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style.Setters>
+                                    <Style.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Trigger.Setters>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate>
+                                                            <Button Name="DeletePixelButton"
+                                                                Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.SelectTransparentColorCommand}"
+                                                                CommandParameter="{Binding}">
+                                                                <Button.Background>
+                                                                    <SolidColorBrush Color="{Binding Color}" />
+                                                                </Button.Background>
+                                                            </Button>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Trigger.Setters>
+                                        </Trigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Control.Style>
+                        </Control>
+
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Vertical" Margin="0, 14, 14, 14">
+            <Button Content="Save Level" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=AcceptCommand}"/>
+        </StackPanel>
+    </Grid>
+</Window>
