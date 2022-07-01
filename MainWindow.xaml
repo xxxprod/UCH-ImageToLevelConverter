@@ -37,22 +37,37 @@
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
                 <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
 
             <Label Grid.Column="0" Grid.Row="0" Content="Width:" />
-            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Width}"/>
+            <TextBox Grid.Column="1" Grid.Row="0" Text="{Binding Width.Value}"/>
             <Label Grid.Column="0" Grid.Row="1" Content="Height:" />
-            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Height}"/>
+            <TextBox Grid.Column="1" Grid.Row="1" Text="{Binding Height.Value}"/>
+
             <Label Grid.Column="0" Grid.Row="2" Content="MaxColors:" />
-            <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding MaxColors}"/>
-            <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="3" Content="Save" Command="{Binding SaveLevelCommand}"/>
+            <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding MaxColors.Value}"/>
+            
+            <Label Grid.Column="0" Grid.Row="3" Content="WallOffsetLeft:" />
+            <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding WallOffsetLeft.Value}"/>
+            <Label Grid.Column="0" Grid.Row="4" Content="WallOffsetRight:" />
+            <TextBox Grid.Column="1" Grid.Row="4" Text="{Binding WallOffsetRight.Value}"/>
+            <Label Grid.Column="0" Grid.Row="5" Content="WallOffsetTop:" />
+            <TextBox Grid.Column="1" Grid.Row="5" Text="{Binding WallOffsetTop.Value}"/>
+            <Label Grid.Column="0" Grid.Row="6" Content="WallOffsetBottom:" />
+            <TextBox Grid.Column="1" Grid.Row="6" Text="{Binding WallOffsetBottom.Value}"/>
+
+            <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="7" Content="Save" Command="{Binding SaveLevelCommand}"/>
         </Grid>
 
-        <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Pixels}">
+        <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Pixels.Value}">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
-                    <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height}"
-                          tools:GridHelpers.ColumnCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Width}">
+                    <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height.Value}"
+                          tools:GridHelpers.ColumnCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Width.Value}">
                     </Grid>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
@@ -74,14 +89,8 @@
                             <SolidColorBrush Color="{Binding Color}" />
                         </Button.Background>
                     </Button>
-                    <!--<Border BorderThickness="0.1">
-                        <Border.Background>
-                            <SolidColorBrush Color="{Binding Color}" />
-                        </Border.Background>
-                    </Border>-->
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <!--<Image Grid.Column="1" Grid.Row="1" Source="{Binding PreviewImage}" SnapsToDevicePixels="True" Stretch="None" />-->
     </Grid>
 </Window>

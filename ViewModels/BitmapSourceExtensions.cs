@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Media;
@@ -8,11 +9,21 @@ using System.Windows.Media.Imaging;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
+using UCH_ImageToLevelConverter.Model;
 
 namespace UCH_ImageToLevelConverter.ViewModels;
 
 public static class BitmapSourceExtensions
 {
+    public static void WriteTransformedBitmapToFile<T>(this BitmapSource bitmapSource, string fileName) where T : BitmapEncoder, new()
+    {
+        var frame = BitmapFrame.Create(bitmapSource); ;
+        var encoder = new T();
+        encoder.Frames.Add(frame);
+        using var fs = new FileStream(fileName, FileMode.Create);
+        encoder.Save(fs);
+    }
+
     public static BitmapSource Format(this BitmapSource bitmap, PixelFormat destinationFormat)
     {
         return new FormatConvertedBitmap(bitmap, destinationFormat, null, 0);
@@ -138,10 +149,8 @@ public static class BitmapSourceExtensions
         for (var i = 0; i < count; i++)
         {
             int r;
-            while (chosen.Contains((r = rnd.Next(0, array.Length))))
-            {
+            while (!chosen.Add((r = rnd.Next(0, array.Length))))
                 continue;
-            }
 
             result[i] = array[r];
         }
