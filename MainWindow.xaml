@@ -21,7 +21,7 @@
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <Menu Grid.ColumnSpan="2">
+        <Menu Grid.ColumnSpan="3">
             <MenuItem Header="File">
                 <MenuItem Header="Open OriginalImage to convert" Command="{Binding SelectImageToConvertCommand}" />
             </MenuItem>
@@ -50,7 +50,7 @@
 
             <Label Grid.Column="0" Grid.Row="2" Content="MaxColors:" />
             <TextBox Grid.Column="1" Grid.Row="2" Text="{Binding MaxColors.Value}"/>
-            
+
             <Label Grid.Column="0" Grid.Row="3" Content="WallOffsetLeft:" />
             <TextBox Grid.Column="1" Grid.Row="3" Text="{Binding WallOffsetLeft.Value}"/>
             <Label Grid.Column="0" Grid.Row="4" Content="WallOffsetRight:" />
@@ -63,34 +63,53 @@
             <Button Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="7" Content="Save" Command="{Binding SaveLevelCommand}"/>
         </Grid>
 
-        <ItemsControl Grid.Column="1" Grid.Row="1" ItemsSource="{Binding Pixels.Value}">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height.Value}"
+        <Grid Grid.Column="1" Grid.Row="1" Name="PixelContainer" SizeChanged="PixelContainer_OnSizeChanged">
+            <ItemsControl  ItemsSource="{Binding Pixels.Value}" Name="PixelGrid" Loaded="OnPixelGridLoaded">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height.Value}"
                           tools:GridHelpers.ColumnCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Width.Value}">
-                    </Grid>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
+                        </Grid>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
 
-            <ItemsControl.ItemContainerStyle>
-                <Style>
-                    <Style.Setters>
-                        <Setter Property="Grid.Row" Value="{Binding Row}" />
-                        <Setter Property="Grid.Column" Value="{Binding Col}" />
-                    </Style.Setters>
-                </Style>
-            </ItemsControl.ItemContainerStyle>
+                <ItemsControl.ItemContainerStyle>
+                    <Style>
+                        <Style.Setters>
+                            <Setter Property="Grid.Row" Value="{Binding Row}" />
+                            <Setter Property="Grid.Column" Value="{Binding Col}" />
+                        </Style.Setters>
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
 
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type linq:XElement}">
-                    <Button Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.SelectTransparentColorCommand}"
-                            CommandParameter="{Binding}">
-                        <Button.Background>
-                            <SolidColorBrush Color="{Binding Color}" />
-                        </Button.Background>
-                    </Button>
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="{x:Type linq:XElement}">
+
+                        <Border Name="Pixel" BorderThickness="0.2" SnapsToDevicePixels="True">
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding Color}" />
+                            </Border.Background>
+                            <Button Name="DeletePixelButton"
+                                    Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.SelectTransparentColorCommand}"
+                                    CommandParameter="{Binding}">
+                                <Button.Background>
+                                    <SolidColorBrush Color="{Binding Color}" />
+                                </Button.Background>
+                            </Button>
+                        </Border>
+
+                        <DataTemplate.Triggers>
+                            <DataTrigger Binding="{Binding ElementName=Pixel, Path=IsMouseOver}" Value="False">
+                                <DataTrigger.Setters>
+                                    <Setter TargetName="DeletePixelButton" Property="Visibility" Value="Collapsed" />
+                                </DataTrigger.Setters>
+                            </DataTrigger>
+                        </DataTemplate.Triggers>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <!--<Image Grid.Column="2" Grid.Row="1" Source="{Binding OriginalImage.Value}" SizeChanged="FrameworkElement_OnSizeChanged" />-->
     </Grid>
 </Window>

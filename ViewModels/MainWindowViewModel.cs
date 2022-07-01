@@ -19,6 +19,7 @@ public class MainWindowViewModel : ViewModelBase
         SelectTransparentColorCommand = new DelegateCommand(o => RemoveSelectedColor((PixelData)o));
         SaveLevelCommand = new DelegateCommand(o => SavePixelData());
 
+        OriginalImage.PropertyChanged += MaxColors_PropertyChanged;
         Width.PropertyChanged += MaxColors_PropertyChanged;
         Height.PropertyChanged += MaxColors_PropertyChanged;
         MaxColors.PropertyChanged += MaxColors_PropertyChanged;
@@ -32,7 +33,7 @@ public class MainWindowViewModel : ViewModelBase
     public DelegateCommand SelectTransparentColorCommand { get; }
     public DelegateCommand SaveLevelCommand { get; }
 
-    public BitmapSource OriginalImage { get; set; }
+    public NotifyProperty<BitmapSource> OriginalImage { get; } = new();
 
     public NotifyProperty<PixelData[]> Pixels { get; } = new();
     public NotifyProperty<int> Width { get; } = new(70);
@@ -46,14 +47,13 @@ public class MainWindowViewModel : ViewModelBase
 
     private void SelectImageToConvert()
     {
-        OriginalImage = new BitmapImage(new Uri(Path.GetFullPath("testimage.jpg")));
-        UpdatePreview();
+        OriginalImage.Value = new BitmapImage(new Uri(Path.GetFullPath("testimage.jpg")));
         return;
 
         OpenFileDialog openFileDialog = new OpenFileDialog();
         if (openFileDialog.ShowDialog() == true)
         {
-            OriginalImage = new BitmapImage(new Uri(openFileDialog.FileName));
+            OriginalImage.Value = new BitmapImage(new Uri(openFileDialog.FileName));
         }
     }
 
@@ -69,7 +69,7 @@ public class MainWindowViewModel : ViewModelBase
 
     private void UpdatePreview()
     {
-        Pixels.Value = OriginalImage
+        Pixels.Value = OriginalImage.Value
             .Resize(Width.Value, Height.Value)
             .Format(PixelFormats.Rgb24)
             .KNNReduceColors(MaxColors)
@@ -125,7 +125,7 @@ public class MainWindowViewModel : ViewModelBase
                 new XAttribute("customLevelMusic", 10),
                 new XAttribute("customLevelAmbience", 10)
             })
-        ).ToString(SaveOptions.None);
+        ).ToString(SaveOptions.DisableFormatting);
 
         var compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(saveFileContents));
 

@@ -148,9 +148,7 @@ public static class BitmapSourceExtensions
 
         for (var i = 0; i < count; i++)
         {
-            int r;
-            while (!chosen.Add((r = rnd.Next(0, array.Length))))
-                continue;
+            int r = rnd.Next(0, array.Length);
 
             result[i] = array[r];
         }
