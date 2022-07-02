@@ -9,13 +9,29 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Icons\brush.png" />
+    <None Remove="Icons\color_picker.ico" />
+    <None Remove="Icons\eraser.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icons\brush.png" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="Model\" />
     <Folder Include="Tools\" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Extended.Wpf.Toolkit" Version="4.3.0" />
     <PackageReference Include="Microsoft.ML" Version="1.7.1" />
     <PackageReference Include="SevenZip" Version="19.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Icons\color_picker.ico" />
+    <Resource Include="Icons\eraser.ico" />
   </ItemGroup>
 
   <ItemGroup>

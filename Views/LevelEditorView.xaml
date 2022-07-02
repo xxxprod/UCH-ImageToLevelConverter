@@ -6,6 +6,7 @@
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
         xmlns:linq="clr-namespace:System.Xml.Linq;assembly=System.Xml.XDocument"
         xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}"
         Title="Level Editor" Height="650" Width="1000">
@@ -44,32 +45,73 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <ToolBar Grid.ColumnSpan="4"></ToolBar>
+        <Grid Grid.ColumnSpan="3" Margin="14">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Label Content="LevelName:" Margin="3"/>
+            <TextBox Grid.Column="1" Text="{Binding LevelName.Value}" Style="{DynamicResource TextBoxStyle}"/>
+        </Grid>
 
         <GridSplitter Grid.Column="0" Grid.Row="2" VerticalAlignment="Stretch" Width="5" />
         <GridSplitter Grid.Column="2" Grid.Row="2" VerticalAlignment="Stretch" Width="5" />
 
 
         <ScrollViewer Grid.Column="0" Grid.Row="2" Margin="14" VerticalScrollBarVisibility="Auto">
-            <UniformGrid Columns="2" VerticalAlignment="Top">
+            <StackPanel Orientation="Vertical">
+                <UniformGrid Columns="2" VerticalAlignment="Top">
 
-                <Label Content="Wall Offsets" FontWeight="Bold" />
-                <Label />
+                    <Label Content="Wall Offsets" FontWeight="Bold" />
+                    <Label />
 
-                <Label Content="Left:" />
-                <TextBox Text="{Binding WallOffsetLeft.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                <Label Content="Right:" />
-                <TextBox Text="{Binding WallOffsetRight.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                <Label Content="Top:" />
-                <TextBox Text="{Binding WallOffsetTop.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                <Label Content="Bottom:" />
-                <TextBox Text="{Binding WallOffsetBottom.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                    <Label Content="Left:" />
+                    <TextBox Text="{Binding WallOffsetLeft.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                    <Label Content="Right:" />
+                    <TextBox Text="{Binding WallOffsetRight.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                    <Label Content="Top:" />
+                    <TextBox Text="{Binding WallOffsetTop.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
+                    <Label Content="Bottom:" />
+                    <TextBox Text="{Binding WallOffsetBottom.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
 
-            </UniformGrid>
+                    <Label />
+                    <Label />
+
+                    <Label Content="Paint Color" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding ColorPickingEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/color_picker.ico" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
+                </UniformGrid>
+
+                <xctk:ColorPicker Height="30" DisplayColorAndName="False" Padding="3" SelectedColor="{Binding SelectedColor.Value}"/>
+
+                <UniformGrid Columns="2" VerticalAlignment="Top">
+
+                    <Label Content="Eraser" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding EraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
+                    <Label Content="Brush" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding PaintBrushEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/brush.png" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
+                </UniformGrid>
+            </StackPanel>
         </ScrollViewer>
 
         <Grid Grid.Column="1" Grid.Row="2" Name="PixelContainer" SizeChanged="PixelContainer_OnSizeChanged" Background="DimGray">
-            <ItemsControl ItemsSource="{Binding Pixels.Value}" Name="PixelGrid" Loaded="OnPixelGridLoaded">
+
+            <ItemsControl ItemsSource="{Binding Pixels.Value}" Name="PixelGrid" Loaded="OnPixelGridLoaded" PreviewMouseMove="PixelGrid_OnPreviewMouse" PreviewMouseDown="PixelGrid_OnPreviewMouse">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height.Value}"
@@ -89,45 +131,54 @@
 
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type linq:XElement}">
+                        <Grid Name="PixelHost">
+                            <Border BorderThickness="0.2">
+                                <Border.Background>
+                                    <SolidColorBrush Color="{Binding Color.Value}" />
+                                </Border.Background>
+                            </Border>
+                            <Border Name="PixelButton" Background="Gray" Opacity="0.4" Visibility="Collapsed"/>
+                        </Grid>
 
-                        <Control Name="Pixel" SnapsToDevicePixels="True">
-                            <Control.Style>
-                                <Style TargetType="Control">
-                                    <Style.Setters>
-                                        <Setter Property="Template">
-                                            <Setter.Value>
-                                                <ControlTemplate>
-                                                    <Border BorderThickness="0.2">
-                                                        <Border.Background>
-                                                            <SolidColorBrush Color="{Binding Color}" />
-                                                        </Border.Background>
-                                                    </Border>
-                                                </ControlTemplate>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Style.Setters>
-                                    <Style.Triggers>
-                                        <Trigger Property="IsMouseOver" Value="True">
-                                            <Trigger.Setters>
-                                                <Setter Property="Template">
-                                                    <Setter.Value>
-                                                        <ControlTemplate>
-                                                            <Button Name="DeletePixelButton"
-                                                                Command="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.SelectTransparentColorCommand}"
-                                                                CommandParameter="{Binding}">
-                                                                <Button.Background>
-                                                                    <SolidColorBrush Color="{Binding Color}" />
-                                                                </Button.Background>
-                                                            </Button>
-                                                        </ControlTemplate>
-                                                    </Setter.Value>
-                                                </Setter>
-                                            </Trigger.Setters>
-                                        </Trigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Control.Style>
-                        </Control>
+                        <DataTemplate.Triggers>
+
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.ColorPickingEnabled.Value}" Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
+                                    <!--<Setter TargetName="PixelButton" Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.PickColorCommand}" />-->
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.EraserEnabled.Value}" Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
+                                    <!--<Setter TargetName="PixelButton" Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.ErasePixelCommand}" />-->
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+
+                            <MultiDataTrigger>
+                                <MultiDataTrigger.Conditions>
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.PaintBrushEnabled.Value}" Value="True" />
+                                </MultiDataTrigger.Conditions>
+                                <MultiDataTrigger.Setters>
+                                    <Setter Property="Cursor" Value="Hand" />
+                                    <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
+                                    <!--<Setter TargetName="PixelButton" Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.PaintPixelCommand}" />-->
+                                </MultiDataTrigger.Setters>
+                            </MultiDataTrigger>
+
+                        </DataTemplate.Triggers>
 
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
@@ -135,7 +186,7 @@
         </Grid>
 
         <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Vertical" Margin="0, 14, 14, 14">
-            <Button Content="Save Level" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=AcceptCommand}"/>
+            <Button Content="Save Level" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=SaveLevelCommand}"/>
         </StackPanel>
     </Grid>
 </Window>

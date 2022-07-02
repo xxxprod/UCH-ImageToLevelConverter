@@ -29,7 +29,7 @@ namespace UCH_ImageToLevelConverter
             {
                 DataContext = new LevelEditorViewModel
                 {
-                    LevelName = { Value = Path.GetFileName(imageSelectorViewModel.ImageFileName) },
+                    LevelName = { Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName) },
                     Pixels = { Value = imageSelectorViewModel.Pixels },
                     Width = { Value = imageSelectorViewModel.Width },
                     Height = { Value = imageSelectorViewModel.Height },

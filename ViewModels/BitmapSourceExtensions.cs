@@ -55,7 +55,7 @@ public static class BitmapSourceExtensions
                 {
                     Row = row,
                     Col = col,
-                    Color = color
+                    Color = { Value = color }
                 };
             }
         }
@@ -74,9 +74,9 @@ public static class BitmapSourceExtensions
             {
                 Features = new[]
                 {
-                    pixelData.Color.R / 255.0f,
-                    pixelData.Color.G / 255.0f,
-                    pixelData.Color.B / 255.0f
+                    pixelData.Color.Value.R / 255.0f,
+                    pixelData.Color.Value.G / 255.0f,
+                    pixelData.Color.Value.B / 255.0f
                 }
             };
         }

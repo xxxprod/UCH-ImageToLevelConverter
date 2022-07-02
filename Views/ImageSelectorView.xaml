@@ -70,21 +70,6 @@
                 <Label Content="Height:" />
                 <TextBox Text="{Binding Height.Value}" Style="{DynamicResource NumberTextBoxStyle}" tools:TextBoxHelpers.UpdateSourceDelay="2"/>
                 
-                <!--<Label />
-                <Label />
-
-                <Label Content="Wall Offsets" FontWeight="Bold" />
-                <Label />
-
-                <Label Content="Left:" />
-                <TextBox Text="{Binding WallOffsetLeft.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                <Label Content="Right:" />
-                <TextBox Text="{Binding WallOffsetRight.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                <Label Content="Top:" />
-                <TextBox Text="{Binding WallOffsetTop.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                <Label Content="Bottom:" />
-                <TextBox Text="{Binding WallOffsetBottom.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>-->
-                
                 <Label />
                 <Label />
 
@@ -119,7 +104,7 @@
                     <DataTemplate DataType="{x:Type linq:XElement}">
                         <Border BorderThickness="0.2" SnapsToDevicePixels="True">
                             <Border.Background>
-                                <SolidColorBrush Color="{Binding Color}" />
+                                <SolidColorBrush Color="{Binding Color.Value}" />
                             </Border.Background>
                         </Border>
                     </DataTemplate>

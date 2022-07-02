@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views
@@ -9,13 +10,35 @@ namespace UCH_ImageToLevelConverter.Views
     {
         public LevelEditorView() => InitializeComponent();
 
-
         private void OnPixelGridLoaded(object sender, RoutedEventArgs e)
         {
             DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, typeof(ItemsControl))
                 .AddValueChanged(sender, (_, _) => UpdateGrid());
 
             PixelGrid.SizeChanged += (_, _) => UpdateGrid();
+        }
+
+        private void PixelContainer_OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateGrid();
+        }
+
+        private void PixelGrid_OnPreviewMouse(object sender, MouseEventArgs e)
+        {
+            var viewModel = ((LevelEditorViewModel)PixelGrid.DataContext);
+            
+            if(e.LeftButton == MouseButtonState.Pressed)
+            {
+                if (Mouse.DirectlyOver is not FrameworkElement element)
+                    return;
+
+                if(viewModel.PaintBrushEnabled)
+                    viewModel.PaintPixelCommand.Execute(element.DataContext);
+                else if(viewModel.EraserEnabled)
+                    viewModel.ErasePixelCommand.Execute(element.DataContext);
+                else if(viewModel.ColorPickingEnabled)
+                    viewModel.PickColorCommand.Execute(element.DataContext);
+            }
         }
 
         private void UpdateGrid()
@@ -32,26 +55,6 @@ namespace UCH_ImageToLevelConverter.Views
                 PixelGrid.Height = PixelContainer.ActualHeight;
                 PixelGrid.Width = PixelContainer.ActualHeight * viewModel.Width / viewModel.Height;
             }
-
-
-            //if (viewModel.Height < viewModel.Width)
-            //{
-            //    PixelGrid.Width = double.NaN;
-            //    PixelGrid.UpdateLayout();
-            //    var newHeight = PixelGrid.ActualWidth * viewModel.Height / viewModel.Width;
-            //    PixelGrid.Height = newHeight;
-            //}
-            //else
-            //{
-            //    PixelGrid.Height = double.NaN;
-            //    PixelGrid.UpdateLayout();
-            //    PixelGrid.Width = PixelGrid.ActualHeight * viewModel.Width / viewModel.Height;
-            //}
-        }
-
-        private void PixelContainer_OnSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            UpdateGrid();
         }
     }
 }
