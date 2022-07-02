@@ -42,8 +42,6 @@ public class Property<T> : ViewModelBase
     public override int GetHashCode() => EqualityComparer<T>.Default.GetHashCode(_value);
 
     public static implicit operator T(Property<T> d) => d.Value;
-    public static bool operator ==(Property<T> a, Property<T> b) => Equals(a, b);
-    public static bool operator !=(Property<T> a, Property<T> b) => !Equals(a, b);
 }
 
 public class IntProperty : Property<int>

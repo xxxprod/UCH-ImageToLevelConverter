@@ -3,9 +3,9 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:linq="clr-namespace:System.Xml.Linq;assembly=System.Xml.XDocument"
         xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
+        xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:ImageSelectorViewModel}">
 
@@ -82,36 +82,7 @@
             </UniformGrid>
         </ScrollViewer>
 
-        <Grid Grid.Column="1" Grid.Row="2" Name="PixelContainer" SizeChanged="PixelContainer_OnSizeChanged" Background="DimGray">
-            <ItemsControl ItemsSource="{Binding Pixels.Value}" Name="PixelGrid" Loaded="OnPixelGridLoaded">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Height.Value}"
-                              tools:GridHelpers.ColumnCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.Width.Value}">
-                        </Grid>
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-
-                <ItemsControl.ItemContainerStyle>
-                    <Style>
-                        <Style.Setters>
-                            <Setter Property="Grid.Row" Value="{Binding Row}" />
-                            <Setter Property="Grid.Column" Value="{Binding Col}" />
-                        </Style.Setters>
-                    </Style>
-                </ItemsControl.ItemContainerStyle>
-
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate DataType="{x:Type linq:XElement}">
-                        <Border BorderThickness="0.2" SnapsToDevicePixels="True">
-                            <Border.Background>
-                                <SolidColorBrush Color="{Binding Color.Value}" />
-                            </Border.Background>
-                        </Border>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-        </Grid>
+        <views:PixelGridView Grid.Column="1" Grid.Row="2" />
 
         <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Vertical" Margin="0, 14, 14, 14">
             <Button Content="Next" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=NavigateToLevelEditorCommand}"/>

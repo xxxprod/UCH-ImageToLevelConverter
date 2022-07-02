@@ -10,7 +10,7 @@ using UCH_ImageToLevelConverter.Tools;
 
 namespace UCH_ImageToLevelConverter.ViewModels;
 
-public class LevelEditorViewModel : ViewModelBase
+public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 {
     public readonly Color EmptyColor = new();
 
@@ -18,57 +18,45 @@ public class LevelEditorViewModel : ViewModelBase
 
     public LevelEditorViewModel()
     {
-        ErasePixelCommand = new DelegateCommand(o => ErasePixel((PixelData)o));
-        PickColorCommand = new DelegateCommand(o => SelectedColor.Value = ((PixelData)o).Color);
-        PaintPixelCommand = new DelegateCommand(o => ((PixelData)o).Color.Value = SelectedColor);
+        PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((PixelData)o));
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
-        NavigateToImageSelectorCommand = new DelegateCommand(o => {});
+        NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
-        PixelEraserEnabled.OnChanged += newValue =>
+        var pixelGridActions = new[]
         {
-            EditorEnabled.Value = newValue;
-            if (!newValue) return;
-            ColorPickingEnabled.Value = false;
-            PaintBrushEnabled.Value = false;
-            MagicEraserEnabled.Value = false;
+            PixelEraserEnabled,
+            MagicEraserEnabled,
+            ColorPickingEnabled,
+            PaintBrushEnabled
         };
-        MagicEraserEnabled.OnChanged += newValue =>
+
+        foreach (Property<bool> pixelGridAction in pixelGridActions)
         {
-            EditorEnabled.Value = newValue;
-            if (!newValue) return;
-            ColorPickingEnabled.Value = false;
-            PaintBrushEnabled.Value = false;
-            PixelEraserEnabled.Value = false;
-        };
-        ColorPickingEnabled.OnChanged += newValue =>
-        {
-            EditorEnabled.Value = newValue;
-            if (!newValue) return;
-            PixelEraserEnabled.Value = false;
-            PaintBrushEnabled.Value = false;
-            MagicEraserEnabled.Value = false;
-        };
-        PaintBrushEnabled.OnChanged += newValue =>
-        {
-            EditorEnabled.Value = newValue;
-            if (!newValue) return;
-            PixelEraserEnabled.Value = false;
-            ColorPickingEnabled.Value = false;
-            MagicEraserEnabled.Value = false;
-        };
+            var localAction = pixelGridAction;
+
+            localAction.OnChanged += newValue =>
+            {
+                EditorEnabled.Value = pixelGridActions.Any(a => a);
+                if (!newValue) return;
+
+                foreach (var otherAction in pixelGridActions)
+                {
+                    if (!ReferenceEquals(otherAction, localAction))
+                        otherAction.Value = false;
+                }
+            };
+        }
     }
 
-    public DelegateCommand ErasePixelCommand { get; }
-    public DelegateCommand PickColorCommand { get; }
-    public DelegateCommand PaintPixelCommand { get; }
+    public DelegateCommand PixelGridActionCommand { get; }
     public DelegateCommand SaveLevelCommand { get; }
     public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
 
     public Property<PixelData[]> Pixels { get; } = new();
-    public Property<int> Width { get; } = new(70);
-    public Property<int> Height { get; } = new(50);
+    public IntProperty Width { get; } = new(70);
+    public IntProperty Height { get; } = new(50);
 
     public IntProperty WallOffsetLeft { get; } = new(5, 0, 20);
     public IntProperty WallOffsetRight { get; } = new(5, 0, 20);
@@ -82,6 +70,14 @@ public class LevelEditorViewModel : ViewModelBase
     public Property<bool> PaintBrushEnabled { get; } = new();
 
     public Property<Color> SelectedColor { get; } = new(Colors.Black);
+
+
+    private void OnPixelGridAction(PixelData pixelData)
+    {
+        if (PixelEraserEnabled || MagicEraserEnabled) ErasePixel(pixelData);
+        else if (ColorPickingEnabled) SelectedColor.Value = pixelData.Color;
+        else if (PaintBrushEnabled) pixelData.Color.Value = SelectedColor.Value;
+    }
 
     private void ErasePixel(PixelData pixel)
     {

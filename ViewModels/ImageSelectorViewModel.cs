@@ -9,12 +9,13 @@ using UCH_ImageToLevelConverter.Tools;
 
 namespace UCH_ImageToLevelConverter.ViewModels;
 
-public class ImageSelectorViewModel : ViewModelBase
+public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 {
     public ImageSelectorViewModel()
     {
         SelectImageToConvertCommand = new DelegateCommand(_ => SelectImageToConvert());
         NavigateToLevelEditorCommand = new DelegateCommand(_ => OriginalImage.Value != null, _ => { });
+        PixelGridActionCommand = new DelegateCommand(_ => throw new NotImplementedException());
 
         RegisterPropertyChangedCallback(UpdatePreview,
             OriginalImage, Width, Height, MaxColors);
@@ -22,10 +23,12 @@ public class ImageSelectorViewModel : ViewModelBase
 
     public DelegateCommand SelectImageToConvertCommand { get; }
     public DelegateCommand NavigateToLevelEditorCommand { get; }
+    public DelegateCommand PixelGridActionCommand { get; }
 
     public Property<BitmapSource> OriginalImage { get; } = new();
 
     public Property<string> ImageFileName { get; } = new();
+    public Property<bool> EditorEnabled { get; } = new();
     public Property<PixelData[]> Pixels { get; } = new();
     public IntProperty Width { get; } = new(70, 0, 150);
     public IntProperty Height { get; } = new(50, 0, 150);
