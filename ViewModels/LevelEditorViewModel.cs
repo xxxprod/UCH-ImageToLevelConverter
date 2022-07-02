@@ -192,7 +192,7 @@ public class LevelEditorViewModel : ViewModelBase
                 new XAttribute("rZ", 90)),
             new XElement("moved",
                 new XAttribute("path", "StartPlank"),
-                new XAttribute("pX", minX + 0.5 - Width / 2),
+                new XAttribute("pX", minX - Width / 2 + 0.5),
                 new XAttribute("pY", minY - Height / 2),
                 new XAttribute("rZ", 0))
         };
