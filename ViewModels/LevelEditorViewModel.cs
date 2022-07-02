@@ -12,6 +12,8 @@ namespace UCH_ImageToLevelConverter.ViewModels;
 
 public class LevelEditorViewModel : ViewModelBase
 {
+    public readonly Color EmptyColor = new();
+
     private const string SnapshotsDirectory = "snapshots";
 
     public LevelEditorViewModel()
@@ -19,25 +21,39 @@ public class LevelEditorViewModel : ViewModelBase
         ErasePixelCommand = new DelegateCommand(o => ErasePixel((PixelData)o));
         PickColorCommand = new DelegateCommand(o => SelectedColor.Value = ((PixelData)o).Color);
         PaintPixelCommand = new DelegateCommand(o => ((PixelData)o).Color.Value = SelectedColor);
-        SaveLevelCommand = new DelegateCommand(o => SavePixelData());
+        SaveLevelCommand = new DelegateCommand(o => SaveLevel());
 
-        EraserEnabled.OnChanged += newValue =>
+        PixelEraserEnabled.OnChanged += newValue =>
         {
+            EditorEnabled.Value = newValue;
             if (!newValue) return;
             ColorPickingEnabled.Value = false;
             PaintBrushEnabled.Value = false;
+            MagicEraserEnabled.Value = false;
+        };
+        MagicEraserEnabled.OnChanged += newValue =>
+        {
+            EditorEnabled.Value = newValue;
+            if (!newValue) return;
+            ColorPickingEnabled.Value = false;
+            PaintBrushEnabled.Value = false;
+            PixelEraserEnabled.Value = false;
         };
         ColorPickingEnabled.OnChanged += newValue =>
         {
+            EditorEnabled.Value = newValue;
             if (!newValue) return;
-            EraserEnabled.Value = false;
+            PixelEraserEnabled.Value = false;
             PaintBrushEnabled.Value = false;
+            MagicEraserEnabled.Value = false;
         };
         PaintBrushEnabled.OnChanged += newValue =>
         {
+            EditorEnabled.Value = newValue;
             if (!newValue) return;
-            EraserEnabled.Value = false;
+            PixelEraserEnabled.Value = false;
             ColorPickingEnabled.Value = false;
+            MagicEraserEnabled.Value = false;
         };
     }
 
@@ -51,21 +67,25 @@ public class LevelEditorViewModel : ViewModelBase
     public Property<PixelData[]> Pixels { get; } = new();
     public Property<int> Width { get; } = new(70);
     public Property<int> Height { get; } = new(50);
-    public Property<int> WallOffsetLeft { get; } = new(5);
-    public Property<int> WallOffsetRight { get; } = new(5);
-    public Property<int> WallOffsetTop { get; } = new(5);
-    public Property<int> WallOffsetBottom { get; } = new(5);
+
+    public IntProperty WallOffsetLeft { get; } = new(5, 0, 20);
+    public IntProperty WallOffsetRight { get; } = new(5, 0, 20);
+    public IntProperty WallOffsetTop { get; } = new(5, 0, 20);
+    public IntProperty WallOffsetBottom { get; } = new(5, 0, 20);
+
+    public Property<bool> EditorEnabled { get; } = new();
     public Property<bool> ColorPickingEnabled { get; } = new();
-    public Property<bool> EraserEnabled { get; } = new();
+    public Property<bool> PixelEraserEnabled { get; } = new();
+    public Property<bool> MagicEraserEnabled { get; } = new();
     public Property<bool> PaintBrushEnabled { get; } = new();
 
-    public Property<Color> SelectedColor { get; } = new();
+    public Property<Color> SelectedColor { get; } = new(Colors.Black);
 
     private void ErasePixel(PixelData pixel)
     {
         var matchingColor = pixel.Color.Value;
 
-        if (matchingColor == new Color())
+        if (matchingColor == EmptyColor)
             return;
 
         var queue = new Queue<PixelData>();
@@ -76,7 +96,10 @@ public class LevelEditorViewModel : ViewModelBase
         {
             pixel = queue.Dequeue();
 
-            pixel.Color.Value = new Color();
+            pixel.Color.Value = EmptyColor;
+
+            if (!MagicEraserEnabled)
+                continue;
 
             var neighborIdx = new[]
             {
@@ -100,10 +123,10 @@ public class LevelEditorViewModel : ViewModelBase
 
     private int GetIndex(int row, int col) => row * Width + col;
 
-    private void SavePixelData()
+    private void SaveLevel()
     {
         var activePixels = Pixels.Value
-            .Where(a => a.Color.Value != new Color())
+            .Where(a => a.Color.Value != EmptyColor)
             .ToArray();
 
         var blocks = activePixels.Select<PixelData, object>((p, i) => new XElement("block",
@@ -164,7 +187,7 @@ public class LevelEditorViewModel : ViewModelBase
 
         if (File.Exists(filePath))
         {
-            if (MessageBox.Show(Application.Current.MainWindow!, 
+            if (MessageBox.Show(Application.Current.MainWindow!,
                     $"The file '{filePath}' does already exists. Overwrite?",
                     "Save Level", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
                 return;

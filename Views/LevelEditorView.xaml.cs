@@ -35,7 +35,7 @@ namespace UCH_ImageToLevelConverter.Views
 
                 if (viewModel.PaintBrushEnabled)
                     viewModel.PaintPixelCommand.Execute(element.DataContext);
-                else if (viewModel.EraserEnabled)
+                else if (viewModel.PixelEraserEnabled || viewModel.MagicEraserEnabled)
                     viewModel.ErasePixelCommand.Execute(element.DataContext);
                 else if (viewModel.ColorPickingEnabled)
                     viewModel.PickColorCommand.Execute(element.DataContext);

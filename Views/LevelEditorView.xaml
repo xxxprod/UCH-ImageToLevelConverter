@@ -79,7 +79,7 @@
                     <Label />
                     <Label />
 
-                    <Label Content="Paint Color" FontWeight="Bold" />
+                    <Label Content="Pick Color" FontWeight="Bold" />
                     <CheckBox IsChecked="{Binding ColorPickingEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/color_picker.ico" Width="16" Height="16" />
@@ -88,12 +88,21 @@
 
                 </UniformGrid>
 
-                <pt:ColorPicker SelectedColor="{Binding SelectedColor.Value}"/>
+                <pt:ColorPicker SelectedColor="{Binding SelectedColor.Value}" />
 
                 <UniformGrid Columns="2" VerticalAlignment="Top">
 
-                    <Label Content="Eraser" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding EraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Label />
+                    <Label />
+
+                    <Label Content="Pixel Eraser" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding PixelEraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+                    <Label Content="Magic Color Eraser" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding MagicEraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
@@ -146,36 +155,11 @@
                             <MultiDataTrigger>
                                 <MultiDataTrigger.Conditions>
                                     <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.ColorPickingEnabled.Value}" Value="True" />
+                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.EditorEnabled.Value}" Value="True" />
                                 </MultiDataTrigger.Conditions>
                                 <MultiDataTrigger.Setters>
                                     <Setter Property="Cursor" Value="Hand" />
                                     <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
-                                    <!--<Setter TargetName="PixelButton" Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.PickColorCommand}" />-->
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.EraserEnabled.Value}" Value="True" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Cursor" Value="Hand" />
-                                    <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
-                                    <!--<Setter TargetName="PixelButton" Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.ErasePixelCommand}" />-->
-                                </MultiDataTrigger.Setters>
-                            </MultiDataTrigger>
-
-                            <MultiDataTrigger>
-                                <MultiDataTrigger.Conditions>
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                    <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, Path=DataContext.PaintBrushEnabled.Value}" Value="True" />
-                                </MultiDataTrigger.Conditions>
-                                <MultiDataTrigger.Setters>
-                                    <Setter Property="Cursor" Value="Hand" />
-                                    <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
-                                    <!--<Setter TargetName="PixelButton" Property="Command" Value="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.PaintPixelCommand}" />-->
                                 </MultiDataTrigger.Setters>
                             </MultiDataTrigger>
 

@@ -29,9 +29,9 @@ public class ImageSelectorViewModel : ViewModelBase
 
     public Property<string> ImageFileName { get; } = new();
     public Property<PixelData[]> Pixels { get; } = new();
-    public Property<int> Width { get; } = new(70);
-    public Property<int> Height { get; } = new(50);
-    public Property<int?> MaxColors { get; } = new();
+    public IntProperty Width { get; } = new(70, 0, 150);
+    public IntProperty Height { get; } = new(50, 0, 150);
+    public NullableIntProperty MaxColors { get; } = new(null, null, 256);
 
 
     private void SelectImageToConvert()
@@ -51,7 +51,7 @@ public class ImageSelectorViewModel : ViewModelBase
             return;
 
         var bitmapSource = OriginalImage.Value
-            .Resize(Width.Value, Height.Value)
+            .Resize(Width, Height)
             .Format(PixelFormats.Rgb24);
 
         if (MaxColors.Value.HasValue)

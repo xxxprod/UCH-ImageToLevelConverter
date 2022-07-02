@@ -27,6 +27,7 @@
         <Style x:Key="NumberTextBoxStyle" BasedOn="{StaticResource TextBoxStyle}"  TargetType="TextBox">
             <Style.Setters>
                 <Setter Property="HorizontalContentAlignment" Value="Right" />
+                <EventSetter Event="PreviewKeyDown" Handler="OnNumberTextBoxPreviewKeyDown"></EventSetter>
             </Style.Setters>
         </Style>
     </Window.Resources>
@@ -67,10 +68,10 @@
                 <Label Content="Size" FontWeight="Bold" />
                 <Label />
                 <Label Content="Width:" />
-                <TextBox Text="{Binding Width.Value}" Style="{DynamicResource NumberTextBoxStyle}" tools:TextBoxHelpers.UpdateSourceDelay="2"/>
+                <TextBox Text="{Binding Width.Value, ValidatesOnExceptions=True}" Style="{DynamicResource NumberTextBoxStyle}" tools:TextBoxHelpers.UpdateSourceDelay="2"/>
                 <Label Content="Height:" />
                 <TextBox Text="{Binding Height.Value}" Style="{DynamicResource NumberTextBoxStyle}" tools:TextBoxHelpers.UpdateSourceDelay="2"/>
-                
+
                 <Label />
                 <Label />
 
