@@ -14,16 +14,14 @@ public class ImageSelectorViewModel : ViewModelBase
     public ImageSelectorViewModel()
     {
         SelectImageToConvertCommand = new DelegateCommand(_ => SelectImageToConvert());
-        AcceptCommand = new DelegateCommand(
-            _ => OriginalImage.Value != null,
-            _ => Application.Current.MainWindow!.DialogResult = true);
+        NavigateToLevelEditorCommand = new DelegateCommand(_ => OriginalImage.Value != null, _ => { });
 
         RegisterPropertyChangedCallback(UpdatePreview,
             OriginalImage, Width, Height, MaxColors);
     }
 
     public DelegateCommand SelectImageToConvertCommand { get; }
-    public DelegateCommand AcceptCommand { get; }
+    public DelegateCommand NavigateToLevelEditorCommand { get; }
 
     public Property<BitmapSource> OriginalImage { get; } = new();
 

@@ -22,6 +22,7 @@ public class LevelEditorViewModel : ViewModelBase
         PickColorCommand = new DelegateCommand(o => SelectedColor.Value = ((PixelData)o).Color);
         PaintPixelCommand = new DelegateCommand(o => ((PixelData)o).Color.Value = SelectedColor);
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
+        NavigateToImageSelectorCommand = new DelegateCommand(o => {});
 
         PixelEraserEnabled.OnChanged += newValue =>
         {
@@ -61,6 +62,7 @@ public class LevelEditorViewModel : ViewModelBase
     public DelegateCommand PickColorCommand { get; }
     public DelegateCommand PaintPixelCommand { get; }
     public DelegateCommand SaveLevelCommand { get; }
+    public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
 

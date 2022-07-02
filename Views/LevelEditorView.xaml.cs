@@ -6,7 +6,7 @@ using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views
 {
-    public partial class LevelEditorView : Window
+    public partial class LevelEditorView
     {
         public LevelEditorView() => InitializeComponent();
 

@@ -8,7 +8,7 @@ using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views
 {
-    public partial class ImageSelectorView : Window
+    public partial class ImageSelectorView
     {
         private readonly HashSet<string> _numericKeyCodes = Enumerable.Range(0, 9)
             .SelectMany(i => new[] { $"D{i}", $"NumPad{i}" })

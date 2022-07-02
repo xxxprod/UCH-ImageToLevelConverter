@@ -5,36 +5,36 @@ using UCH_ImageToLevelConverter.Views;
 
 namespace UCH_ImageToLevelConverter
 {
-    public partial class App : Application
+    public partial class App
     {
         protected override void OnStartup(StartupEventArgs e)
         {
-            ShutdownMode = ShutdownMode.OnExplicitShutdown;
+            MainWindow = new MainWindow();
 
             var imageSelectorViewModel = new ImageSelectorViewModel();
-            MainWindow = new ImageSelectorView
+            var levelEditorViewModel = new LevelEditorViewModel();
+
+            imageSelectorViewModel.NavigateToLevelEditorCommand.ExecuteCalled += _ =>
             {
-                DataContext = imageSelectorViewModel
+                levelEditorViewModel.LevelName.Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName);
+                levelEditorViewModel.Pixels.Value = imageSelectorViewModel.Pixels;
+                levelEditorViewModel.Width.Value = imageSelectorViewModel.Width;
+                levelEditorViewModel.Height.Value = imageSelectorViewModel.Height;
+
+                MainWindow.DataContext = levelEditorViewModel;
             };
 
-            if (!MainWindow.ShowDialog() ?? false)
+            levelEditorViewModel.NavigateToImageSelectorCommand.ExecuteCalled += _ =>
             {
-                Shutdown();
-                return;
-            }
-            
-            ShutdownMode = ShutdownMode.OnMainWindowClose;
+                var tmp = imageSelectorViewModel.OriginalImage.Value;
+                imageSelectorViewModel.OriginalImage.Value = null;
+                imageSelectorViewModel.OriginalImage.Value = tmp;
+                MainWindow.DataContext = imageSelectorViewModel;
+            };
 
-            MainWindow = new LevelEditorView();
+            MainWindow.DataContext = imageSelectorViewModel;
+
             MainWindow.Show();
-            MainWindow.DataContext = new LevelEditorViewModel
-            {
-                LevelName = {Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName)},
-                Pixels = {Value = imageSelectorViewModel.Pixels},
-                Width = {Value = imageSelectorViewModel.Width},
-                Height = {Value = imageSelectorViewModel.Height},
-            };
-
             base.OnStartup(e);
         }
     }

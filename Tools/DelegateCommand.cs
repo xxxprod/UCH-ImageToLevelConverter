@@ -16,11 +16,17 @@ public class DelegateCommand : ICommand
     }
 
     public bool CanExecute(object parameter) => _canExecute(parameter);
-    public void Execute(object parameter) => _execute(parameter);
+    public void Execute(object parameter)
+    {
+        _execute(parameter);
+        ExecuteCalled?.Invoke(parameter);
+    }
 
     public event EventHandler CanExecuteChanged
     {
         add => CommandManager.RequerySuggested += value;
         remove => CommandManager.RequerySuggested -= value;
     }
+
+    public event Action<object> ExecuteCalled;
 }
