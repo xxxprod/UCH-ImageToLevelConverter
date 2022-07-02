@@ -127,6 +127,30 @@ public class LevelEditorViewModel : ViewModelBase
 
     private void SaveLevel()
     {
+        var snapshotXml = CreateSnapshotXml();
+
+        var compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(snapshotXml));
+
+        if (!Directory.Exists(SnapshotsDirectory))
+            Directory.CreateDirectory(SnapshotsDirectory);
+
+
+        var filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
+
+        if (File.Exists(filePath))
+        {
+            if (MessageBox.Show(Application.Current.MainWindow!,
+                    $"The file '{filePath}' does already exists. Overwrite?",
+                    "Save Level", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+        }
+        File.WriteAllBytes(filePath, compressed);
+
+        MessageBox.Show($"Successfully saved {filePath}", "Save Level", MessageBoxButton.OK, MessageBoxImage.Information);
+    }
+
+    private string CreateSnapshotXml()
+    {
         var activePixels = Pixels.Value
             .Where(a => a.Color.Value != EmptyColor)
             .ToArray();
@@ -147,7 +171,7 @@ public class LevelEditorViewModel : ViewModelBase
         var maxY = activePixels.Max(a => a.Row);
 
 
-        var moved = new[]
+        var standardElements = new[]
         {
             new XElement("moved",
                 new XAttribute("path", "Ceiling"),
@@ -165,10 +189,17 @@ public class LevelEditorViewModel : ViewModelBase
             new XElement("moved",
                 new XAttribute("path", "RightWall"),
                 new XAttribute("pX", maxX - Width / 2 + 5 + WallOffsetRight),
-                new XAttribute("rZ", 90))
+                new XAttribute("rZ", 90)),
+            new XElement("moved",
+                new XAttribute("path", "StartPlank"),
+                new XAttribute("pX", minX + 0.5 - Width / 2),
+                new XAttribute("pY", minY - Height / 2),
+                new XAttribute("rZ", 0))
         };
 
-        var saveFileContents = new XElement("scene", blocks.Concat(moved)
+
+
+        var saveFileContents = new XElement("scene", blocks.Concat(standardElements)
             .Concat(new[]
             {
                 new XAttribute("levelSceneName", "BlankLevel"),
@@ -178,24 +209,6 @@ public class LevelEditorViewModel : ViewModelBase
                 new XAttribute("customLevelAmbience", 10)
             })
         ).ToString(SaveOptions.DisableFormatting);
-
-        var compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(saveFileContents));
-
-        if (!Directory.Exists(SnapshotsDirectory))
-            Directory.CreateDirectory(SnapshotsDirectory);
-
-
-        var filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
-
-        if (File.Exists(filePath))
-        {
-            if (MessageBox.Show(Application.Current.MainWindow!,
-                    $"The file '{filePath}' does already exists. Overwrite?",
-                    "Save Level", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
-                return;
-        }
-        File.WriteAllBytes(filePath, compressed);
-
-        MessageBox.Show($"Successfully saved {filePath}", "Save Level", MessageBoxButton.OK, MessageBoxImage.Information);
+        return saveFileContents;
     }
 }
