@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Windows;
 using System.Windows.Media;
 using System.Xml.Linq;
 using UCH_ImageToLevelConverter.Model;
@@ -11,6 +12,8 @@ namespace UCH_ImageToLevelConverter.ViewModels;
 
 public class LevelEditorViewModel : ViewModelBase
 {
+    private const string SnapshotsDirectory = "snapshots";
+
     public LevelEditorViewModel()
     {
         ErasePixelCommand = new DelegateCommand(o => ErasePixel((PixelData)o));
@@ -153,6 +156,21 @@ public class LevelEditorViewModel : ViewModelBase
 
         var compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(saveFileContents));
 
-        File.WriteAllBytes($"{LevelName.Value}.c.snapshot", compressed);
+        if (!Directory.Exists(SnapshotsDirectory))
+            Directory.CreateDirectory(SnapshotsDirectory);
+
+
+        var filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
+
+        if (File.Exists(filePath))
+        {
+            if (MessageBox.Show(Application.Current.MainWindow!, 
+                    $"The file '{filePath}' does already exists. Overwrite?",
+                    "Save Level", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
+                return;
+        }
+        File.WriteAllBytes(filePath, compressed);
+
+        MessageBox.Show($"Successfully saved {filePath}", "Save Level", MessageBoxButton.OK, MessageBoxImage.Information);
     }
 }

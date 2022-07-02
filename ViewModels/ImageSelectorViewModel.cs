@@ -19,11 +19,7 @@ public class ImageSelectorViewModel : ViewModelBase
             _ => Application.Current.MainWindow!.DialogResult = true);
 
         RegisterPropertyChangedCallback(UpdatePreview,
-            OriginalImage,
-            Width, Height,
-            //WallOffsetLeft, WallOffsetRight,
-            //WallOffsetTop, WallOffsetBottom,
-            MaxColors);
+            OriginalImage, Width, Height, MaxColors);
     }
 
     public DelegateCommand SelectImageToConvertCommand { get; }
@@ -35,19 +31,12 @@ public class ImageSelectorViewModel : ViewModelBase
     public Property<PixelData[]> Pixels { get; } = new();
     public Property<int> Width { get; } = new(70);
     public Property<int> Height { get; } = new(50);
-    public Property<int?> MaxColors { get; } = new(null);
-    //public Property<int> WallOffsetLeft { get; } = new(5);
-    //public Property<int> WallOffsetRight { get; } = new(5);
-    //public Property<int> WallOffsetTop { get; } = new(5);
-    //public Property<int> WallOffsetBottom { get; } = new(5);
+    public Property<int?> MaxColors { get; } = new();
 
 
     private void SelectImageToConvert()
     {
-        var openFileDialog = new OpenFileDialog
-        {
-            InitialDirectory = Environment.CurrentDirectory
-        };
+        var openFileDialog = new OpenFileDialog();
 
         if (openFileDialog.ShowDialog() == true)
         {

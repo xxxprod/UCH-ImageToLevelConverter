@@ -11,7 +11,7 @@ using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
 using UCH_ImageToLevelConverter.Model;
 
-namespace UCH_ImageToLevelConverter.ViewModels;
+namespace UCH_ImageToLevelConverter.Tools;
 
 public static class BitmapSourceExtensions
 {

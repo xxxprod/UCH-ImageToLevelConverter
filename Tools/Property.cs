@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
+using UCH_ImageToLevelConverter.ViewModels;
 
-namespace UCH_ImageToLevelConverter.ViewModels;
+namespace UCH_ImageToLevelConverter.Tools;
 
 public class Property<T> : ViewModelBase
 {
