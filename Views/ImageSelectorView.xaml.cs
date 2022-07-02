@@ -18,9 +18,15 @@ namespace UCH_ImageToLevelConverter.Views
             PixelGrid.SizeChanged += (_, _) => UpdateGrid();
         }
 
+        private void PixelContainer_OnSizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            UpdateGrid();
+        }
+
         private void UpdateGrid()
         {
-            var viewModel = ((ImageSelectorViewModel)PixelGrid.DataContext);
+            var viewModel = (ImageSelectorViewModel)PixelGrid.DataContext;
+            if (viewModel == null) return;
 
             if (viewModel.Height / (double)viewModel.Width < PixelContainer.ActualHeight / PixelContainer.ActualWidth)
             {
@@ -32,16 +38,6 @@ namespace UCH_ImageToLevelConverter.Views
                 PixelGrid.Height = PixelContainer.ActualHeight;
                 PixelGrid.Width = PixelContainer.ActualHeight * viewModel.Width / viewModel.Height;
             }
-        }
-
-        private void PixelContainer_OnSizeChanged(object sender, SizeChangedEventArgs e)
-        {
-            UpdateGrid();
-        }
-
-        protected override void OnClosing(CancelEventArgs e)
-        {
-            base.OnClosing(e);
         }
     }
 }

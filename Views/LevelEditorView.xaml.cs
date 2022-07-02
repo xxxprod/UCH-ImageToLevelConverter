@@ -26,17 +26,18 @@ namespace UCH_ImageToLevelConverter.Views
         private void PixelGrid_OnPreviewMouse(object sender, MouseEventArgs e)
         {
             var viewModel = ((LevelEditorViewModel)PixelGrid.DataContext);
-            
-            if(e.LeftButton == MouseButtonState.Pressed)
+            if (viewModel == null) return;
+
+            if (e.LeftButton == MouseButtonState.Pressed)
             {
                 if (Mouse.DirectlyOver is not FrameworkElement element)
                     return;
 
-                if(viewModel.PaintBrushEnabled)
+                if (viewModel.PaintBrushEnabled)
                     viewModel.PaintPixelCommand.Execute(element.DataContext);
-                else if(viewModel.EraserEnabled)
+                else if (viewModel.EraserEnabled)
                     viewModel.ErasePixelCommand.Execute(element.DataContext);
-                else if(viewModel.ColorPickingEnabled)
+                else if (viewModel.ColorPickingEnabled)
                     viewModel.PickColorCommand.Execute(element.DataContext);
             }
         }
@@ -44,6 +45,7 @@ namespace UCH_ImageToLevelConverter.Views
         private void UpdateGrid()
         {
             var viewModel = ((LevelEditorViewModel)PixelGrid.DataContext);
+            if (viewModel == null) return;
 
             if (viewModel.Height / (double)viewModel.Width < PixelContainer.ActualHeight / PixelContainer.ActualWidth)
             {

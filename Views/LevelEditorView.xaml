@@ -6,10 +6,11 @@
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
         xmlns:linq="clr-namespace:System.Xml.Linq;assembly=System.Xml.XDocument"
         xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
-        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:pt="http://propertytools.org/wpf"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}"
-        Title="Level Editor" Height="650" Width="1000">
+        Title="Level Editor" Height="650" Width="1000"
+        Icon="../Icons/UCH_32x32.png">
 
     <Window.Resources>
         <Style x:Key="ButtonStyle" TargetType="Button">
@@ -87,7 +88,7 @@
 
                 </UniformGrid>
 
-                <xctk:ColorPicker Height="30" DisplayColorAndName="False" Padding="3" SelectedColor="{Binding SelectedColor.Value}"/>
+                <pt:ColorPicker SelectedColor="{Binding SelectedColor.Value}"/>
 
                 <UniformGrid Columns="2" VerticalAlignment="Top">
 

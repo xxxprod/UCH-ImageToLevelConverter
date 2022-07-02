@@ -25,17 +25,15 @@ namespace UCH_ImageToLevelConverter
             
             ShutdownMode = ShutdownMode.OnMainWindowClose;
 
-            MainWindow = new LevelEditorView
-            {
-                DataContext = new LevelEditorViewModel
-                {
-                    LevelName = { Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName) },
-                    Pixels = { Value = imageSelectorViewModel.Pixels },
-                    Width = { Value = imageSelectorViewModel.Width },
-                    Height = { Value = imageSelectorViewModel.Height },
-                }
-            };
+            MainWindow = new LevelEditorView();
             MainWindow.Show();
+            MainWindow.DataContext = new LevelEditorViewModel
+            {
+                LevelName = {Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName)},
+                Pixels = {Value = imageSelectorViewModel.Pixels},
+                Width = {Value = imageSelectorViewModel.Width},
+                Height = {Value = imageSelectorViewModel.Height},
+            };
 
             base.OnStartup(e);
         }

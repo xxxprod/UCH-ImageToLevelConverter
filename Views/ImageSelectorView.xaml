@@ -7,7 +7,8 @@
         xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
         mc:Ignorable="d"
-        Title="Level Image Selector" Height="650" Width="1000" d:DataContext="{d:DesignInstance viewModels:ImageSelectorViewModel}">
+        Title="Level Image Selector" Height="650" Width="1000" d:DataContext="{d:DesignInstance viewModels:ImageSelectorViewModel}"
+        Icon="../Icons/UCH_32x32.png">
 
     <Window.Resources>
         <Style x:Key="ButtonStyle" TargetType="Button">
