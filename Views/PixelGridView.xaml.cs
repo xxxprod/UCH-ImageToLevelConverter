@@ -1,81 +1,120 @@
-﻿using System.ComponentModel;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
+using UCH_ImageToLevelConverter.Model;
+using UCH_ImageToLevelConverter.Tools;
 using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views
 {
     public partial class PixelGridView
     {
-        private double _scale = 1;
+        private const double Space = 1;
+        private const double PixelSize = 30;
 
-        public PixelGridView()
-        {
-            InitializeComponent();
-        }
-        
+        private double _zoomScale = 1;
+        private double _sizeScale = 1;
+
+        private IPixelGridViewModel _viewModel;
+
+        public PixelGridView() => InitializeComponent();
+
         private void ZoomBox_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
             if (!Keyboard.IsKeyDown(Key.LeftCtrl))
                 return;
 
-            if (e.Delta > 0) _scale += 0.1;
-            else if (_scale > 1) _scale -= 0.1;
+            if (e.Delta > 0) _zoomScale += 0.1;
+            else if (_zoomScale > 1) _zoomScale -= 0.1;
 
-            PixelGrid.LayoutTransform = new ScaleTransform(_scale, _scale);
+            UpdateCanvasScale();
 
             e.Handled = true;
         }
-        
-        private void OnPixelGridLoaded(object sender, RoutedEventArgs e)
+
+        private void Canvas_OnPreviewMouse(object sender, MouseEventArgs e)
         {
-            DependencyPropertyDescriptor.FromProperty(ItemsControl.ItemsSourceProperty, typeof(ItemsControl))
-                .AddValueChanged(sender, (_, _) => UpdateGrid());
-
-            PixelGrid.SizeChanged += (_, _) => UpdateGrid();
-        }
-
-
-        protected override void OnRenderSizeChanged(SizeChangedInfo sizeInfo)
-        {
-            base.OnRenderSizeChanged(sizeInfo);
-            UpdateGrid();
-        }
-
-        private void UpdateGrid()
-        {
-            var viewModel = (IPixelGridViewModel)PixelGrid.DataContext;
-            if (viewModel == null) return;
-
-            if (viewModel.Height / (double)viewModel.Width < ActualHeight / ActualWidth)
-            {
-                PixelGrid.Width = ActualWidth;
-                PixelGrid.Height = ActualWidth * viewModel.Height / viewModel.Width;
-            }
-            else
-            {
-                PixelGrid.Height = ActualHeight;
-                PixelGrid.Width = ActualHeight * viewModel.Width / viewModel.Height;
-            }
-        }
-        
-        private void PixelGrid_OnPreviewMouse(object sender, MouseEventArgs e) => RaisePixelGridAction();
-
-        private void RaisePixelGridAction()
-        {
-            var viewModel = ((IPixelGridViewModel) PixelGrid.DataContext);
-            if (viewModel == null) return;
-            if (!viewModel.EditorEnabled) return;
+            if (_viewModel == null) return;
+            if (!_viewModel.EditorEnabled) return;
 
             if (Mouse.LeftButton == MouseButtonState.Pressed)
             {
                 if (Mouse.DirectlyOver is not FrameworkElement element)
                     return;
 
-                viewModel.PixelGridActionCommand.Execute(element.DataContext);
+                _viewModel.PixelGridActionCommand.Execute(element.DataContext);
             }
+        }
+
+        private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (_viewModel != null)
+                _viewModel.Pixels.OnChanged -= OnPixelsChanged;
+
+            if (e.NewValue is IPixelGridViewModel vm)
+            {
+                _viewModel = vm;
+                _viewModel.Pixels.OnChanged += OnPixelsChanged;
+                OnPixelsChanged(_viewModel.Pixels);
+            }
+        }
+
+        private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateCanvasSize();
+
+        private void OnPixelsChanged(PixelData[] pixels)
+        {
+            Canvas.Children.Clear();
+
+            if (_viewModel?.Pixels.Value == null)
+                return;
+
+            for (int row = 0, i = 0; row < _viewModel.Height; row++)
+            {
+                for (int col = 0; col < _viewModel.Width; col++, i++)
+                {
+                    var pixel = _viewModel.Pixels.Value[i];
+                    var brush = new SolidColorBrush();
+
+                    BindingOperations.SetBinding(brush, SolidColorBrush.ColorProperty, new Binding(nameof(PixelData.Color) + "." + nameof(Property<int>.Value)));
+
+                    var rectangle = new Rectangle
+                    {
+                        Height = PixelSize,
+                        Width = PixelSize,
+                        Fill = brush,
+                        DataContext = pixel
+                    };
+                    //rectangle.SetBinding(Rectangle.FillProperty, )
+
+                    Canvas.Children.Add(rectangle);
+
+                    Canvas.SetLeft(rectangle, col * (PixelSize + Space));
+                    Canvas.SetTop(rectangle, row * (PixelSize + Space));
+                }
+            }
+
+            UpdateCanvasSize();
+        }
+
+        private void UpdateCanvasSize()
+        {
+            Canvas.Width = _viewModel.Width * (PixelSize + Space);
+            Canvas.Height = _viewModel.Height * (PixelSize + Space);
+
+            _sizeScale = _viewModel.Height / (double)_viewModel.Width < ActualHeight / ActualWidth
+                ? ActualWidth / Canvas.Width
+                : ActualHeight / Canvas.Height;
+
+            UpdateCanvasScale();
+        }
+
+        private void UpdateCanvasScale()
+        {
+            var scale = _sizeScale * _zoomScale;
+            Canvas.LayoutTransform = new ScaleTransform(scale, scale);
         }
     }
 }
