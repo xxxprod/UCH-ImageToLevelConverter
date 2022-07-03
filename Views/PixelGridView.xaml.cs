@@ -92,7 +92,7 @@ namespace UCH_ImageToLevelConverter.Views
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateCanvasSize();
 
-        private void OnPixelsChanged(PixelData[] pixels)
+        private void OnPixelsChanged(BlockData[] pixels)
         {
             Canvas.Children.Clear();
 
@@ -107,7 +107,7 @@ namespace UCH_ImageToLevelConverter.Views
 
                     var brush = new SolidColorBrush();
                     BindingOperations.SetBinding(brush, SolidColorBrush.ColorProperty,
-                        new Binding(nameof(PixelData.Color) + "." + nameof(Property<int>.Value)));
+                        new Binding(nameof(BlockData.Color) + "." + nameof(Property<int>.Value)));
 
                     var rectangle = new Rectangle
                     {

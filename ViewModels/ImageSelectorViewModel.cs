@@ -29,7 +29,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<string> ImageFileName { get; } = new();
     public Property<bool> EditorEnabled { get; } = new();
-    public Property<PixelData[]> Pixels { get; } = new();
+    public Property<BlockData[]> Pixels { get; } = new();
     public IntProperty Width { get; } = new(70, 0, 150);
     public IntProperty Height { get; } = new(50, 0, 150);
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);

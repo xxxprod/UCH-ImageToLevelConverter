@@ -18,7 +18,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public LevelEditorViewModel()
     {
-        PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((PixelData)o));
+        PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData)o));
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
         NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
@@ -54,7 +54,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<string> LevelName { get; } = new();
 
-    public Property<PixelData[]> Pixels { get; } = new();
+    public Property<BlockData[]> Pixels { get; } = new();
     public IntProperty Width { get; } = new(70);
     public IntProperty Height { get; } = new(50);
 
@@ -72,44 +72,46 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<Color> SelectedColor { get; } = new(Colors.Black);
 
 
-    private void OnPixelGridAction(PixelData pixelData)
+    private void OnPixelGridAction(BlockData blockData)
     {
-        if (PixelEraserEnabled || MagicEraserEnabled) ErasePixel(pixelData);
-        else if (ColorPickingEnabled) SelectedColor.Value = pixelData.Color;
-        else if (PaintBrushEnabled) pixelData.Color.Value = SelectedColor.Value;
+        if (PixelEraserEnabled || MagicEraserEnabled) ErasePixel(blockData);
+        else if (ColorPickingEnabled) SelectedColor.Value = blockData.Color;
+        else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
     }
 
-    private void ErasePixel(PixelData pixel)
+    private void ErasePixel(BlockData block)
     {
-        var matchingColor = pixel.Color.Value;
+        var matchingColor = block.Color.Value;
 
         if (matchingColor == EmptyColor)
             return;
 
-        var queue = new Queue<PixelData>();
-        var done = new HashSet<PixelData>();
-        queue.Enqueue(pixel);
+        var queue = new Queue<BlockData>();
+        var done = new HashSet<BlockData>();
+        queue.Enqueue(block);
 
         while (queue.Any())
         {
-            pixel = queue.Dequeue();
+            block = queue.Dequeue();
 
-            pixel.Color.Value = EmptyColor;
+            block.Color.Value = EmptyColor;
 
             if (!MagicEraserEnabled)
                 continue;
 
-            var neighborIdx = new[]
+            HashSet<int> neighborIdx = new();
+
+            for (int r = -1; r <= block.Height; r++)
             {
-                GetIndex(pixel.Row - 1, pixel.Col + 0),
-                GetIndex(pixel.Row - 1, pixel.Col + 1),
-                GetIndex(pixel.Row - 0, pixel.Col + 1),
-                GetIndex(pixel.Row + 1, pixel.Col + 1),
-                GetIndex(pixel.Row + 1, pixel.Col + 0),
-                GetIndex(pixel.Row + 1, pixel.Col - 1),
-                GetIndex(pixel.Row + 0, pixel.Col - 1),
-                GetIndex(pixel.Row - 1, pixel.Col - 1)
-            };
+                neighborIdx.Add(GetIndex(block.Top + r, block.Left - 1));
+                neighborIdx.Add(GetIndex(block.Top + r, block.Right + 1));
+            }
+
+            for (int c = 0; c < block.Width; c++)
+            {
+                neighborIdx.Add(GetIndex(block.Top - 1, block.Left + c));
+                neighborIdx.Add(GetIndex(block.Top + 1, block.Right + c));
+            }
 
             foreach (var idx in neighborIdx)
             {
@@ -162,20 +164,20 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             .Where(a => a.Color.Value != EmptyColor)
             .ToArray();
 
-        var blocks = activePixels.Select<PixelData, object>((p, i) => new XElement("block",
+        var blocks = activePixels.Select<BlockData, object>((p, i) => new XElement("block",
             new XAttribute("sceneID", i),
             new XAttribute("blockID", 40),
-            new XAttribute("pX", p.Col - Width / 2),
-            new XAttribute("pY", Height / 2 - p.Row),
+            new XAttribute("pX", p.Left - Width / 2),
+            new XAttribute("pY", Height / 2 - p.Top),
             new XAttribute("colR", p.Color.Value.R / 512.0f),
             new XAttribute("colG", p.Color.Value.G / 512.0f),
             new XAttribute("colB", p.Color.Value.B / 512.0f)
         ));
 
-        var minX = activePixels.Min(a => a.Col);
-        var maxX = activePixels.Max(a => a.Col);
-        var minY = activePixels.Min(a => a.Row);
-        var maxY = activePixels.Max(a => a.Row);
+        var minX = activePixels.Min(a => a.Left);
+        var maxX = activePixels.Max(a => a.Left);
+        var minY = activePixels.Min(a => a.Top);
+        var maxY = activePixels.Max(a => a.Top);
 
 
         var standardElements = new[]
