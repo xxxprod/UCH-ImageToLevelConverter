@@ -130,19 +130,30 @@ public class BlockDataCollection : IEnumerable<BlockData>
     {
         private readonly BlockDataCollection _owner;
         private int _index = -1;
+        private readonly bool[] _visitedRefs;
 
         public BlockEnumerator(BlockDataCollection owner)
         {
             _owner = owner;
+            _visitedRefs = new bool[_owner._blocks.Count];
         }
 
         public bool MoveNext()
         {
-            if (_index == _owner._blockRefs.Length - 1)
-                return false;
+            while(true)
+            {
+                if (_index == _owner._blockRefs.Length - 1)
+                    return false;
+                
+                _index++;
+                
+                var blockRef = _owner._blockRefs[_index];
+                if(_visitedRefs[blockRef])
+                    continue;
+                _visitedRefs[blockRef] = true;
 
-            _index++;
-            return true;
+                return true;
+            }
         }
 
         public void Reset()
