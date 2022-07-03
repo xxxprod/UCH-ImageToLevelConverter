@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -97,7 +98,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         var blocksByColor = Blocks
             .GroupBy(a => a.Color)
             .ToDictionary(
-                a => a.Key, 
+                a => a.Key,
                 a => a.SelectMany(b => b.BreakToCells()).ToList()
             );
 
@@ -261,8 +262,17 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 return;
         File.WriteAllBytes(filePath, compressed);
 
-        MessageBox.Show($"Successfully saved {filePath}", "Save Level", MessageBoxButton.OK,
-            MessageBoxImage.Information);
+        if (MessageBox.Show($"Successfully saved {Path.GetFileName(filePath)}\nOpen Output Folder?", "Save Level", MessageBoxButton.YesNo,
+            MessageBoxImage.Information) == MessageBoxResult.Yes)
+        {
+            ProcessStartInfo startInfo = new ProcessStartInfo
+            {
+                Arguments = Path.GetDirectoryName(filePath),
+                FileName = "explorer.exe"
+            };
+
+            Process.Start(startInfo);
+        }
     }
 
     private string CreateSnapshotXml()
