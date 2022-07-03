@@ -101,10 +101,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
             var neighborIdx = new[]
             {
-                GetIndex(pixel.Row - 1, pixel.Col),
-                GetIndex(pixel.Row + 1, pixel.Col),
-                GetIndex(pixel.Row, pixel.Col + 1),
-                GetIndex(pixel.Row, pixel.Col - 1)
+                GetIndex(pixel.Row - 1, pixel.Col + 0),
+                GetIndex(pixel.Row - 1, pixel.Col + 1),
+                GetIndex(pixel.Row - 0, pixel.Col + 1),
+                GetIndex(pixel.Row + 1, pixel.Col + 1),
+                GetIndex(pixel.Row + 1, pixel.Col + 0),
+                GetIndex(pixel.Row + 1, pixel.Col - 1),
+                GetIndex(pixel.Row + 0, pixel.Col - 1),
+                GetIndex(pixel.Row - 1, pixel.Col - 1)
             };
 
             foreach (var idx in neighborIdx)
