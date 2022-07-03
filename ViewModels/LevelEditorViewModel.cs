@@ -277,24 +277,16 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private string CreateSnapshotXml()
     {
-        var activePixels = Blocks
+        var activeBlocks = Blocks
             .Where(a => a.Color.Value != EmptyColor)
             .ToArray();
 
-        var blocks = activePixels.Select<BlockData, object>((p, i) => new XElement("block",
-            new XAttribute("sceneID", i),
-            new XAttribute("blockID", 40),
-            new XAttribute("pX", p.Left - Blocks.Width / 2),
-            new XAttribute("pY", Blocks.Height / 2 - p.Top),
-            new XAttribute("colR", p.Color.Value.R / 512.0f),
-            new XAttribute("colG", p.Color.Value.G / 512.0f),
-            new XAttribute("colB", p.Color.Value.B / 512.0f)
-        ));
+        var blocks = activeBlocks.Select<BlockData, object>(CreateBlockXml);
 
-        var minX = activePixels.Min(a => a.Left);
-        var maxX = activePixels.Max(a => a.Left);
-        var minY = activePixels.Min(a => a.Top);
-        var maxY = activePixels.Max(a => a.Top);
+        var minX = activeBlocks.Min(a => a.Left);
+        var maxX = activeBlocks.Max(a => a.Left);
+        var minY = activeBlocks.Min(a => a.Top);
+        var maxY = activeBlocks.Max(a => a.Top);
 
 
         var standardElements = new[]
@@ -335,6 +327,123 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             })
         ).ToString(SaveOptions.DisableFormatting);
         return saveFileContents;
+    }
+
+    private XElement CreateBlockXml(BlockData block, int index)
+    {
+        int blockId;// = 40;
+        var x = block.Left - Blocks.Width / 2;
+        var y = Blocks.Height / 2 - block.Top;
+        var rot = 0;
+
+        if (block.Cells == 1)
+            blockId = 40;
+        else if (block.Cells == 2)
+        {
+            blockId = 41;
+            if (block.Width == 1)
+            {
+                rot = 90;
+                y -= 1;
+            }
+        }
+        else if (block.Cells == 3)
+        {
+            blockId = 42;
+            if (block.Height == 1)
+                x += 1;
+            else
+            {
+                rot = 90;
+                y -= 1;
+            }
+        }
+        else if (block.Cells == 4 && (block.Width == 1 || block.Height == 1))
+        {
+            blockId = 43;
+            if (block.Height == 1)
+                x += 1;
+            else
+            {
+                rot = 90;
+                y -= 2;
+            }
+        }
+        else if (block.Cells == 8 && (block.Width == 1 || block.Height == 1))
+        {
+            blockId = 44;
+            if (block.Height == 1)
+                x += 4;
+            else
+            {
+                rot = 90;
+                y -= 3;
+            }
+        }
+        else if (block.Cells == 16 && (block.Width == 1 || block.Height == 1))
+        {
+            blockId = 45;
+            if (block.Height == 1)
+                x += 7;
+            else
+            {
+                rot = 90;
+                y -= 8;
+            }
+        }
+        else if (block.Cells == 8 && (block.Width == 2 || block.Height == 2))
+        {
+            blockId = 46;
+            if (block.Height == 2)
+                x += 1;
+            else
+            {
+                rot = 90;
+                y -= 2;
+            }
+        }
+        else if (block.Cells == 4 && block.Width == 2)
+            blockId = 47;
+        else if (block.Cells == 16 && block.Width == 4)
+        {
+            blockId = 48;
+            x += 1;
+            y -= 1;
+        }
+        else if (block.Cells == 64)
+        {
+            blockId = 49;
+            x += 3;
+            y -= 3;
+        }
+        else if (block.Cells == 96)
+        {
+            blockId = 50;
+            if (block.Width == 6)
+            {
+                x += 2;
+                y -= 7;
+            }
+            else
+            {
+                rot = 90;
+                x += 7;
+                y -= 3;
+            }
+        }
+        else throw new NotSupportedException(
+                $"Block with Height {block.Height} and Width {block.Width} is not supported");
+
+        return new XElement("block",
+            new XAttribute("sceneID", index),
+            new XAttribute("blockID", blockId),
+            new XAttribute("pX", x),
+            new XAttribute("pY", y),
+            new XAttribute("rZ", rot),
+            new XAttribute("colR", block.Color.Value.R / 512.0f),
+            new XAttribute("colG", block.Color.Value.G / 512.0f),
+            new XAttribute("colB", block.Color.Value.B / 512.0f)
+        );
     }
 
     protected virtual void OnBlocksChanged()
