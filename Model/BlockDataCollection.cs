@@ -92,7 +92,7 @@ public class BlockDataCollection : IEnumerable<BlockData>
         }
     }
 
-    private IEnumerable<int> GetNeighborIndices(BlockData block)
+    public IEnumerable<int> GetNeighborIndices(BlockData block)
     {
         for (var row = -1; row <= block.Height; row++)
         {

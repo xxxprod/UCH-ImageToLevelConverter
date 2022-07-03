@@ -83,70 +83,139 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (PixelEraserEnabled || MagicEraserEnabled) ErasePixel(blockData);
         else if (ColorPickingEnabled) SelectedColor.Value = blockData.Color;
         else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
-        else if (OptimizerEnabled) OptimizeColor(blockData);
+        else if (OptimizerEnabled) OptimizeSection(blockData);
     }
 
-    private void OptimizeColor(BlockData block)
+    private void OptimizeSection(BlockData block)
     {
-        Blocks.SetBlock(new BlockData(block.Top, block.Left, 2, 2, Colors.Red));
+        var blocksToOptimize = FindBlocksWithSameColor(block, block.Color)
+            .SelectMany(a => a.BreakToCells())
+            .ToList();
+
+        if (blocksToOptimize.Count <= 1)
+            return;
+
+        var minCol = blocksToOptimize.Min(a => a.Left);
+        var maxCol = blocksToOptimize.Max(a => a.Left);
+        var minRow = blocksToOptimize.Min(a => a.Top);
+        var maxRow = blocksToOptimize.Max(a => a.Top);
+
+        var width = maxCol - minCol + 1;
+        var height = maxRow - minRow + 1;
+
+        BlockData[,] blockGrid = new BlockData[height, width];
+
+        foreach (BlockData blockData in blocksToOptimize)
+        {
+            var row = blockData.Top - minRow;
+            var col = blockData.Left - minCol;
+            blockGrid[row, col] = blockData;
+        }
+
+        (int Width, int Height)[] blockSizes = new[]
+        {
+            (16,6), (6,16),
+            (8,8),
+            (1,16), (16,1),
+            (4,4),
+            (2,4), (4,2),
+            (1,8), (8,1),
+            (2,2),
+            (1,4), (4,1),
+            (1,3), (3,1),
+            (1,2), (2,1),
+            (1,1)
+        };
+
+        var ran = new Random();
+
+        var optimizedBlocks = new List<BlockData>();
+
+        while (blocksToOptimize.Any())
+        {
+            var nextBlock = blocksToOptimize[ran.Next(blocksToOptimize.Count)];
+
+            foreach ((int blockWidth, int blockHeight) in blockSizes)
+            {
+                bool foundHole = false;
+                for (int deltaRow = 0; deltaRow < blockHeight && !foundHole; deltaRow++)
+                {
+                    for (int deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
+                    {
+                        var row = nextBlock.Top + deltaRow - minRow;
+                        var col = nextBlock.Left + deltaCol - minCol;
+                        if (row >= height || col >= width || blockGrid[row, col] == null)
+                            foundHole = true;
+                    }
+                }
+
+                if (!foundHole)
+                {
+                    optimizedBlocks.Add(new BlockData(nextBlock.Top, nextBlock.Left, blockWidth, blockHeight, nextBlock.Color));
+
+                    for (int deltaRow = 0; deltaRow < blockHeight; deltaRow++)
+                    {
+                        for (int deltaCol = 0; deltaCol < blockWidth; deltaCol++)
+                        {
+                            var row = nextBlock.Top + deltaRow - minRow;
+                            var col = nextBlock.Left + deltaCol - minCol;
+                            blocksToOptimize.Remove(blockGrid[row, col]);
+                            blockGrid[row, col] = null;
+                        }
+                    }
+
+                    break;
+                }
+            }
+        }
+
+        foreach (var optimizedBlock in optimizedBlocks)
+            Blocks.SetBlock(optimizedBlock);
+
 
         OnBlocksChanged();
 
-        //OptimizerEnabled.Value = false;
+        OptimizerEnabled.Value = false;
     }
 
     private void ErasePixel(BlockData block)
     {
-        var matchingColor = block.Color.Value;
+        foreach (var foundBlock in FindBlocksWithSameColor(block, block.Color))
+        {
+            foundBlock.Color.Value = EmptyColor;
 
-        if (matchingColor == EmptyColor)
-            return;
+            if (!MagicEraserEnabled)
+                break;
+        }
+    }
+
+    private IEnumerable<BlockData> FindBlocksWithSameColor(BlockData startBlock, Color color)
+    {
+        if (color == EmptyColor)
+            yield break;
 
         var queue = new Queue<BlockData>();
         var done = new HashSet<BlockData>();
-        queue.Enqueue(block);
+        queue.Enqueue(startBlock);
+        done.Add(startBlock);
 
         while (queue.Any())
         {
-            block = queue.Dequeue();
+            var block = queue.Dequeue();
 
-            block.Color.Value = EmptyColor;
+            yield return block;
 
-            if (!MagicEraserEnabled)
-                continue;
-
-            HashSet<int> neighborIdx = new();
-
-            for (var r = -1; r <= block.Height; r++)
-            {
-                neighborIdx.Add(GetIndex(block.Top + r, block.Left - 1));
-                neighborIdx.Add(GetIndex(block.Top + r, block.Right + 1));
-            }
-
-            for (var c = 0; c < block.Width; c++)
-            {
-                neighborIdx.Add(GetIndex(block.Top - 1, block.Left + c));
-                neighborIdx.Add(GetIndex(block.Top + 1, block.Right + c));
-            }
+            var neighborIdx = Blocks.GetNeighborIndices(block);
 
             foreach (var idx in neighborIdx)
             {
-                if (idx < 0 || idx >= Blocks.Height * Blocks.Width)
+                if (idx < 0 || idx >= Blocks.Width * Blocks.Height)
                     continue;
-
                 var neighbor = Blocks[idx];
-                if (neighbor.Color == matchingColor && done.Add(neighbor))
+                if (neighbor.Color == color && done.Add(neighbor))
                     queue.Enqueue(neighbor);
             }
         }
-    }
-    private int GetIndex(int row, int col)
-    {
-        if (row < 0) row = 0;
-        if (col < 0) col = 0;
-        if (row >= Blocks.Height) row = Blocks.Height;
-        if (col >= Blocks.Width) col = Blocks.Width;
-        return row * Blocks.Width + col;
     }
 
     private void SaveLevel()
