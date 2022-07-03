@@ -29,7 +29,8 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<string> ImageFileName { get; } = new();
     public Property<bool> EditorEnabled { get; } = new();
-    public Property<BlockData[]> Blocks { get; } = new();
+    public BlockDataCollection Blocks { get; private set; }
+    public event Action BlocksChanged;
     public IntProperty Width { get; } = new(70, 0, 150);
     public IntProperty Height { get; } = new(50, 0, 150);
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);
@@ -58,8 +59,12 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
         if (MaxColors.Value.HasValue)
             bitmapSource = bitmapSource.KNNReduceColors(MaxColors.Value.Value);
 
-        Blocks.Value = bitmapSource
-            .GetPixelData()
-            .ToArray();
+        Blocks = new BlockDataCollection(Width, Height, bitmapSource.GetPixelData());
+        OnBlocksChanged();
+    }
+
+    protected virtual void OnBlocksChanged()
+    {
+        BlocksChanged?.Invoke();
     }
 }

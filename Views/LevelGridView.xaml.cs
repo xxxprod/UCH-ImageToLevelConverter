@@ -80,23 +80,23 @@ namespace UCH_ImageToLevelConverter.Views
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (_viewModel != null)
-                _viewModel.Blocks.OnChanged -= OnPixelsChanged;
+                _viewModel.BlocksChanged -= OnBlocksChanged;
 
             if (e.NewValue is IPixelGridViewModel vm)
             {
                 _viewModel = vm;
-                _viewModel.Blocks.OnChanged += OnPixelsChanged;
-                OnPixelsChanged(_viewModel.Blocks);
+                _viewModel.BlocksChanged += OnBlocksChanged;
+                OnBlocksChanged();
             }
         }
 
         private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateCanvasSize();
 
-        private void OnPixelsChanged(BlockData[] pixels)
+        private void OnBlocksChanged()
         {
             Canvas.Children.Clear();
 
-            var blocks = _viewModel?.Blocks.Value;
+            var blocks = _viewModel?.Blocks;
             if (blocks == null)
                 return;
 
@@ -125,10 +125,13 @@ namespace UCH_ImageToLevelConverter.Views
 
         private void UpdateCanvasSize()
         {
-            Canvas.Width = _viewModel.Width * (CellSize + Space);
-            Canvas.Height = _viewModel.Height * (CellSize + Space);
+            if (_viewModel.Blocks == null)
+                return;
 
-            _sizeScale = _viewModel.Height / (double)_viewModel.Width < ActualHeight / ActualWidth
+            Canvas.Width = _viewModel.Blocks.Width * (CellSize + Space);
+            Canvas.Height = _viewModel.Blocks.Height * (CellSize + Space);
+
+            _sizeScale = _viewModel.Blocks.Height / (double)_viewModel.Blocks.Width < ActualHeight / ActualWidth
                 ? ActualWidth / Canvas.Width
                 : ActualHeight / Canvas.Height;
 
