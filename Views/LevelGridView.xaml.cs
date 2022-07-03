@@ -99,7 +99,7 @@ namespace UCH_ImageToLevelConverter.Views
             var blocks = _viewModel?.Blocks;
             if (blocks == null)
                 return;
-
+            
             foreach (BlockData block in blocks)
             {
                 var brush = new SolidColorBrush();

@@ -10,4 +10,5 @@ public interface IPixelGridViewModel
     BlockDataCollection Blocks { get; }
     event Action BlocksChanged;
     DelegateCommand PixelGridActionCommand { get; }
+    IntProperty LevelFullness { get; }
 }

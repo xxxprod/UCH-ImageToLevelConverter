@@ -68,6 +68,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<Color> SelectedColor { get; } = new(Colors.Black);
 
     public DelegateCommand PixelGridActionCommand { get; }
+    public IntProperty LevelFullness { get; } = new();
 
     public BlockDataCollection Blocks
     {
@@ -86,8 +87,9 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         else if (ColorPickingEnabled) SelectedColor.Value = blockData.Color;
         else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
         else if (OptimizerEnabled) OptimizeSection(blockData);
-    }
 
+        UpdateLevelFullness();
+    }
 
 
     private void OptimizeAll()
@@ -96,7 +98,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             .GroupBy(a => a.Color)
             .ToDictionary(a => a.Key, a => a.ToList());
 
-        foreach ((Color color, List<BlockData> blocks) in blocksByColor) 
+        foreach ((Color color, List<BlockData> blocks) in blocksByColor)
             OptimizeBlocks(blocks);
 
         OnBlocksChanged();
@@ -325,5 +327,11 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     protected virtual void OnBlocksChanged()
     {
         BlocksChanged?.Invoke();
+        UpdateLevelFullness();
+    }
+
+    private void UpdateLevelFullness()
+    {
+        LevelFullness.Value = Blocks.Count(a => a.Color.Value != new Color()) * 5 + 10; // Add 10 for Start and Goal
     }
 }
