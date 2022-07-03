@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -12,9 +13,8 @@ namespace UCH_ImageToLevelConverter.ViewModels;
 
 public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 {
-    public readonly Color EmptyColor = new();
-
     private const string SnapshotsDirectory = "snapshots";
+    public readonly Color EmptyColor = new();
 
     public LevelEditorViewModel()
     {
@@ -27,10 +27,11 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             PixelEraserEnabled,
             MagicEraserEnabled,
             ColorPickingEnabled,
-            PaintBrushEnabled
+            PaintBrushEnabled,
+            OptimizerEnabled
         };
 
-        foreach (Property<bool> pixelGridAction in pixelGridActions)
+        foreach (var pixelGridAction in pixelGridActions)
         {
             var localAction = pixelGridAction;
 
@@ -40,36 +41,36 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 if (!newValue) return;
 
                 foreach (var otherAction in pixelGridActions)
-                {
                     if (!ReferenceEquals(otherAction, localAction))
                         otherAction.Value = false;
-                }
             };
         }
     }
 
-    public DelegateCommand PixelGridActionCommand { get; }
     public DelegateCommand SaveLevelCommand { get; }
     public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
 
-    public Property<BlockData[]> Blocks { get; } = new();
-    public IntProperty Width { get; } = new(70);
-    public IntProperty Height { get; } = new(50);
-
     public IntProperty WallOffsetLeft { get; } = new(5, 0, 20);
     public IntProperty WallOffsetRight { get; } = new(5, 0, 20);
     public IntProperty WallOffsetTop { get; } = new(5, 0, 20);
     public IntProperty WallOffsetBottom { get; } = new(5, 0, 20);
-
-    public Property<bool> EditorEnabled { get; } = new();
     public Property<bool> ColorPickingEnabled { get; } = new();
     public Property<bool> PixelEraserEnabled { get; } = new();
     public Property<bool> MagicEraserEnabled { get; } = new();
     public Property<bool> PaintBrushEnabled { get; } = new();
+    public Property<bool> OptimizerEnabled { get; } = new();
 
     public Property<Color> SelectedColor { get; } = new(Colors.Black);
+
+    public DelegateCommand PixelGridActionCommand { get; }
+
+    public Property<BlockData[]> Blocks { get; } = new();
+    public IntProperty Width { get; } = new(70);
+    public IntProperty Height { get; } = new(50);
+
+    public Property<bool> EditorEnabled { get; } = new();
 
 
     private void OnPixelGridAction(BlockData blockData)
@@ -77,6 +78,26 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (PixelEraserEnabled || MagicEraserEnabled) ErasePixel(blockData);
         else if (ColorPickingEnabled) SelectedColor.Value = blockData.Color;
         else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
+        else if (OptimizerEnabled) OptimizeColor(blockData);
+    }
+
+    private void OptimizeColor(BlockData block)
+    {
+        var blocks = Blocks.Value;
+
+        Blocks.Value = blocks
+            .Where(b => !(b.Top == block.Top & (b.Left >= block.Left - 1 && b.Left <= block.Left + 1)))
+            .Concat(new[]
+            {
+                new BlockData
+                {
+                    Color = {Value = block.Color},
+                    Left = block.Left - 1,
+                    Right = block.Left + 1,
+                    Top = block.Top,
+                    Bottom = block.Bottom
+                }
+            }).ToArray();
     }
 
     private void ErasePixel(BlockData block)
@@ -101,13 +122,13 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
             HashSet<int> neighborIdx = new();
 
-            for (int r = -1; r <= block.Height; r++)
+            for (var r = -1; r <= block.Height; r++)
             {
                 neighborIdx.Add(GetIndex(block.Top + r, block.Left - 1));
                 neighborIdx.Add(GetIndex(block.Top + r, block.Right + 1));
             }
 
-            for (int c = 0; c < block.Width; c++)
+            for (var c = 0; c < block.Width; c++)
             {
                 neighborIdx.Add(GetIndex(block.Top - 1, block.Left + c));
                 neighborIdx.Add(GetIndex(block.Top + 1, block.Right + c));
@@ -115,7 +136,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
             foreach (var idx in neighborIdx)
             {
-                if (idx < 0 || idx >= (Height * Width))
+                if (idx < 0 || idx >= Height * Width)
                     continue;
 
                 var neighbor = Blocks.Value[idx];
@@ -147,15 +168,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         var filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
 
         if (File.Exists(filePath))
-        {
             if (MessageBox.Show(Application.Current.MainWindow!,
                     $"The file '{filePath}' does already exists. Overwrite?",
                     "Save Level", MessageBoxButton.YesNo, MessageBoxImage.Warning) != MessageBoxResult.Yes)
                 return;
-        }
         File.WriteAllBytes(filePath, compressed);
 
-        MessageBox.Show($"Successfully saved {filePath}", "Save Level", MessageBoxButton.OK, MessageBoxImage.Information);
+        MessageBox.Show($"Successfully saved {filePath}", "Save Level", MessageBoxButton.OK,
+            MessageBoxImage.Information);
     }
 
     private string CreateSnapshotXml()
@@ -205,7 +225,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 new XAttribute("pY", minY - Height / 2),
                 new XAttribute("rZ", 0))
         };
-
 
 
         var saveFileContents = new XElement("scene", blocks.Concat(standardElements)

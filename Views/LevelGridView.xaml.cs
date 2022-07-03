@@ -13,7 +13,7 @@ namespace UCH_ImageToLevelConverter.Views
     public partial class LevelGridView
     {
         private const double Space = 1;
-        private const double PixelSize = 30;
+        private const double CellSize = 30;
 
         private double _zoomScale = 1;
         private double _sizeScale = 1;
@@ -108,16 +108,16 @@ namespace UCH_ImageToLevelConverter.Views
 
                 var rectangle = new Rectangle
                 {
-                    Height = PixelSize * block.Height,
-                    Width = PixelSize * block.Width,
+                    Height = CellSize * block.Height + Space * (block.Height - 1),
+                    Width = CellSize * block.Width + Space * (block.Width - 1),
                     Fill = brush,
                     DataContext = block
                 };
 
                 Canvas.Children.Add(rectangle);
 
-                Canvas.SetLeft(rectangle, block.Left * (PixelSize + Space));
-                Canvas.SetTop(rectangle, block.Top * (PixelSize + Space));
+                Canvas.SetLeft(rectangle, block.Left * (CellSize + Space));
+                Canvas.SetTop(rectangle, block.Top * (CellSize + Space));
             }
 
             UpdateCanvasSize();
@@ -125,8 +125,8 @@ namespace UCH_ImageToLevelConverter.Views
 
         private void UpdateCanvasSize()
         {
-            Canvas.Width = _viewModel.Width * (PixelSize + Space);
-            Canvas.Height = _viewModel.Height * (PixelSize + Space);
+            Canvas.Width = _viewModel.Width * (CellSize + Space);
+            Canvas.Height = _viewModel.Height * (CellSize + Space);
 
             _sizeScale = _viewModel.Height / (double)_viewModel.Width < ActualHeight / ActualWidth
                 ? ActualWidth / Canvas.Width

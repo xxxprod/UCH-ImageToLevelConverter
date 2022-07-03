@@ -117,6 +117,16 @@
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
+                    
+                    <Label />
+                    <Label />
+
+                    <Label Content="Optimizer" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding OptimizerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
 
                 </UniformGrid>
             </StackPanel>
