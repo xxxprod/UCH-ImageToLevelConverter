@@ -9,6 +9,7 @@ namespace UCH_ImageToLevelConverter
     {
         protected override void OnStartup(StartupEventArgs e)
         {
+            Dispatcher.UnhandledException += Dispatcher_UnhandledException;
             MainWindow = new MainWindow();
 
             var imageSelectorViewModel = new ImageSelectorViewModel();
@@ -34,6 +35,12 @@ namespace UCH_ImageToLevelConverter
 
             MainWindow.Show();
             base.OnStartup(e);
+        }
+
+        private void Dispatcher_UnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            MessageBox.Show(e.Exception.Message, "Ulimate Chicken Horse Level Designer Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            e.Handled = true;
         }
     }
 }
