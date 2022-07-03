@@ -281,38 +281,46 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             .Where(a => a.Color.Value != EmptyColor)
             .ToArray();
 
-        var blocks = activeBlocks.Select<BlockData, object>(CreateBlockXml);
+        var blocks = activeBlocks.Select<BlockData, object>(CreateBlockXml).ToArray();
 
         var minX = activeBlocks.Min(a => a.Left);
-        var maxX = activeBlocks.Max(a => a.Left);
+        var maxX = activeBlocks.Max(a => a.Right);
         var minY = activeBlocks.Min(a => a.Top);
-        var maxY = activeBlocks.Max(a => a.Top);
+        var maxY = activeBlocks.Max(a => a.Bottom);
 
 
         var standardElements = new[]
         {
             new XElement("moved",
-                new XAttribute("path", "Ceiling"),
-                new XAttribute("pY", maxY - Blocks.Height / 2 + 6 + WallOffsetTop),
-                new XAttribute("rZ", 180)),
-            new XElement("moved",
                 new XAttribute("placeableID", 7),
                 new XAttribute("path", "DeathPit"),
-                new XAttribute("pY", minY - Blocks.Height / 2 - 4 - WallOffsetBottom),
-                new XAttribute("rZ", 0)),
+                new XAttribute("pY", minY - Blocks.Height / 2 - 4 - WallOffsetBottom)),
             new XElement("moved",
+                new XAttribute("placeableID", 9),
                 new XAttribute("path", "LeftWall"),
                 new XAttribute("pX", minX - Blocks.Width / 2 - 5 - WallOffsetLeft),
                 new XAttribute("rZ", 270)),
             new XElement("moved",
+                new XAttribute("placeableID", 8),
+                new XAttribute("path", "Ceiling"),
+                new XAttribute("pY", maxY - Blocks.Height / 2 + 6 + WallOffsetTop),
+                new XAttribute("rZ", 180)),
+            new XElement("moved",
+                new XAttribute("placeableID", 6),
                 new XAttribute("path", "RightWall"),
                 new XAttribute("pX", maxX - Blocks.Width / 2 + 5 + WallOffsetRight),
                 new XAttribute("rZ", 90)),
+            new XElement("block",
+                new XAttribute("sceneID", blocks.Length + 5),
+                new XAttribute("blockID", 39),
+                new XAttribute("pX", maxX - Blocks.Width / 2 + WallOffsetRight -1),
+                new XAttribute("pY", minY - Blocks.Height / 2 - WallOffsetBottom + 1),
+                new XAttribute("placeableID", 2)),
             new XElement("moved",
+                new XAttribute("placeableID", 11),
                 new XAttribute("path", "StartPlank"),
-                new XAttribute("pX", minX - Blocks.Width / 2 + 0.5),
-                new XAttribute("pY", minY - Blocks.Height / 2),
-                new XAttribute("rZ", 0))
+                new XAttribute("pX", minX - Blocks.Width / 2 - WallOffsetLeft + 1.5),
+                new XAttribute("pY", minY - Blocks.Height / 2 - WallOffsetBottom + 1))
         };
 
 
@@ -440,6 +448,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             new XAttribute("pX", x),
             new XAttribute("pY", y),
             new XAttribute("rZ", rot),
+            new XAttribute("placeableID", 13 + index * 2),
             new XAttribute("colR", block.Color.Value.R / 512.0f),
             new XAttribute("colG", block.Color.Value.G / 512.0f),
             new XAttribute("colB", block.Color.Value.B / 512.0f)
