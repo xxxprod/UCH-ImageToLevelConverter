@@ -10,8 +10,8 @@ public class BlockData
     public int Right { get; set; }
     public int Bottom { get; set; }
 
-    public int Height => Bottom - Top;
-    public int Width => Right - Left;
+    public int Height => Bottom - Top + 1;
+    public int Width => Right - Left + 1;
     public int Cells => Height * Width;
 
     public Property<Color> Color { get; } = new();

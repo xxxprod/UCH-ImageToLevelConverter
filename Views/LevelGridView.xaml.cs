@@ -10,7 +10,7 @@ using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views
 {
-    public partial class PixelGridView
+    public partial class LevelGridView
     {
         private const double Space = 1;
         private const double PixelSize = 30;
@@ -22,7 +22,7 @@ namespace UCH_ImageToLevelConverter.Views
         private bool _dragEnabled;
         private Point _dragStart;
 
-        public PixelGridView() => InitializeComponent();
+        public LevelGridView() => InitializeComponent();
 
         private void ZoomBox_OnPreviewMouseWheel(object sender, MouseWheelEventArgs e)
         {
@@ -80,13 +80,13 @@ namespace UCH_ImageToLevelConverter.Views
         private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
         {
             if (_viewModel != null)
-                _viewModel.Pixels.OnChanged -= OnPixelsChanged;
+                _viewModel.Blocks.OnChanged -= OnPixelsChanged;
 
             if (e.NewValue is IPixelGridViewModel vm)
             {
                 _viewModel = vm;
-                _viewModel.Pixels.OnChanged += OnPixelsChanged;
-                OnPixelsChanged(_viewModel.Pixels);
+                _viewModel.Blocks.OnChanged += OnPixelsChanged;
+                OnPixelsChanged(_viewModel.Blocks);
             }
         }
 
@@ -96,32 +96,28 @@ namespace UCH_ImageToLevelConverter.Views
         {
             Canvas.Children.Clear();
 
-            if (_viewModel?.Pixels.Value == null)
+            var blocks = _viewModel?.Blocks.Value;
+            if (blocks == null)
                 return;
 
-            for (int row = 0, i = 0; row < _viewModel.Height; row++)
+            foreach (BlockData block in blocks)
             {
-                for (int col = 0; col < _viewModel.Width; col++, i++)
+                var brush = new SolidColorBrush();
+                BindingOperations.SetBinding(brush, SolidColorBrush.ColorProperty,
+                    new Binding(nameof(BlockData.Color) + "." + nameof(Property<int>.Value)));
+
+                var rectangle = new Rectangle
                 {
-                    var pixel = _viewModel.Pixels.Value[i];
+                    Height = PixelSize * block.Height,
+                    Width = PixelSize * block.Width,
+                    Fill = brush,
+                    DataContext = block
+                };
 
-                    var brush = new SolidColorBrush();
-                    BindingOperations.SetBinding(brush, SolidColorBrush.ColorProperty,
-                        new Binding(nameof(BlockData.Color) + "." + nameof(Property<int>.Value)));
+                Canvas.Children.Add(rectangle);
 
-                    var rectangle = new Rectangle
-                    {
-                        Height = PixelSize,
-                        Width = PixelSize,
-                        Fill = brush,
-                        DataContext = pixel
-                    };
-
-                    Canvas.Children.Add(rectangle);
-
-                    Canvas.SetLeft(rectangle, col * (PixelSize + Space));
-                    Canvas.SetTop(rectangle, row * (PixelSize + Space));
-                }
+                Canvas.SetLeft(rectangle, block.Left * (PixelSize + Space));
+                Canvas.SetTop(rectangle, block.Top * (PixelSize + Space));
             }
 
             UpdateCanvasSize();

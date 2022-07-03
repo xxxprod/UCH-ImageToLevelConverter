@@ -17,7 +17,7 @@ namespace UCH_ImageToLevelConverter
             imageSelectorViewModel.NavigateToLevelEditorCommand.ExecuteCalled += _ =>
             {
                 levelEditorViewModel.LevelName.Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName);
-                levelEditorViewModel.Pixels.Value = imageSelectorViewModel.Pixels;
+                levelEditorViewModel.Blocks.Value = imageSelectorViewModel.Blocks;
                 levelEditorViewModel.Width.Value = imageSelectorViewModel.Width;
                 levelEditorViewModel.Height.Value = imageSelectorViewModel.Height;
 

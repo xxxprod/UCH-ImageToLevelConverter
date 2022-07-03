@@ -6,7 +6,7 @@ namespace UCH_ImageToLevelConverter.ViewModels;
 public interface IPixelGridViewModel
 {
     Property<bool> EditorEnabled { get; }
-    Property<BlockData[]> Pixels { get; }
+    Property<BlockData[]> Blocks { get; }
     IntProperty Height { get; }
     IntProperty Width { get; }
     DelegateCommand PixelGridActionCommand { get; }

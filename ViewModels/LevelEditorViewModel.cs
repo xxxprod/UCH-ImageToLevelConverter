@@ -54,7 +54,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<string> LevelName { get; } = new();
 
-    public Property<BlockData[]> Pixels { get; } = new();
+    public Property<BlockData[]> Blocks { get; } = new();
     public IntProperty Width { get; } = new(70);
     public IntProperty Height { get; } = new(50);
 
@@ -118,7 +118,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 if (idx < 0 || idx >= (Height * Width))
                     continue;
 
-                var neighbor = Pixels.Value[idx];
+                var neighbor = Blocks.Value[idx];
                 if (neighbor.Color == matchingColor && done.Add(neighbor))
                     queue.Enqueue(neighbor);
             }
@@ -160,7 +160,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private string CreateSnapshotXml()
     {
-        var activePixels = Pixels.Value
+        var activePixels = Blocks.Value
             .Where(a => a.Color.Value != EmptyColor)
             .ToArray();
 

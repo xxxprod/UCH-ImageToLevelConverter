@@ -122,7 +122,7 @@
             </StackPanel>
         </ScrollViewer>
 
-        <views:PixelGridView Grid.Column="1" Grid.Row="2" />
+        <views:LevelGridView Grid.Column="1" Grid.Row="2" />
 
         <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Vertical" Margin="0, 14, 14, 14">
             <Button Content="Save Level" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=SaveLevelCommand}"/>
