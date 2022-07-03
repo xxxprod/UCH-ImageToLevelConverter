@@ -40,12 +40,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="testimage.jpg">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-  </ItemGroup>
-
-  <ItemGroup>
     <Page Update="Views\ImageSelectorView.xaml">
       <XamlRuntime>$(DefaultXamlRuntime)</XamlRuntime>
       <SubType>Designer</SubType>

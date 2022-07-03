@@ -119,7 +119,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         }
     }
 
-    private int GetIndex(int row, int col) => row * Width + col;
+    private int GetIndex(int row, int col)
+    {
+        if (row < 0) row = 0;
+        if (col < 0) col = 0;
+        if (row >= Height) row = Height;
+        if (col >= Width) col = Width;
+        return row * Width + col;
+    }
 
     private void SaveLevel()
     {

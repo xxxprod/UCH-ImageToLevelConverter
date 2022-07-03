@@ -15,7 +15,7 @@ namespace UCH_ImageToLevelConverter.Views
 
         private void OnNumberTextBoxPreviewKeyDown(object sender, KeyEventArgs e)
         {
-            if (e.Key is Key.Delete or Key.Back or Key.Left or Key.Right or Key.Enter or Key.Home or Key.End)
+            if (e.Key is Key.Delete or Key.Back or Key.Left or Key.Right or Key.Enter or Key.Home or Key.End or Key.Tab)
                 return;
 
             e.Handled = !_numericKeyCodes.Contains(e.Key.ToString());

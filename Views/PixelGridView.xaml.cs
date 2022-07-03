@@ -19,6 +19,8 @@ namespace UCH_ImageToLevelConverter.Views
         private double _sizeScale = 1;
 
         private IPixelGridViewModel _viewModel;
+        private bool _dragEnabled;
+        private Point _dragStart;
 
         public PixelGridView() => InitializeComponent();
 
@@ -35,16 +37,42 @@ namespace UCH_ImageToLevelConverter.Views
             e.Handled = true;
         }
 
-        private void Canvas_OnPreviewMouse(object sender, MouseEventArgs e)
+        private void Canvas_OnPreviewMouseDown(object sender, MouseEventArgs e)
         {
             if (_viewModel == null) return;
-            if (!_viewModel.EditorEnabled) return;
 
-            if (Mouse.LeftButton == MouseButtonState.Pressed)
+            if (e.MiddleButton == MouseButtonState.Pressed)
             {
-                if (Mouse.DirectlyOver is not FrameworkElement element)
-                    return;
+                _dragEnabled = true;
+                _dragStart = e.GetPosition(ZoomBox);
+            }
+            else if (Mouse.LeftButton == MouseButtonState.Pressed && _viewModel.EditorEnabled && Mouse.DirectlyOver is FrameworkElement element)
+            {
+                _viewModel.PixelGridActionCommand.Execute(element.DataContext);
+            }
+        }
 
+        private void Canvas_OnPreviewMouseMove(object sender, MouseEventArgs e)
+        {
+            if (_viewModel == null) return;
+
+            if (_dragEnabled)
+            {
+                if (e.MiddleButton != MouseButtonState.Pressed)
+                {
+                    _dragEnabled = false;
+                    return;
+                }
+
+                var newPos = e.GetPosition(ZoomBox);
+                var delta = newPos - _dragStart;
+                _dragStart = newPos;
+
+                ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset - delta.Y);
+                ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset - delta.X);
+            }
+            else if (Mouse.LeftButton == MouseButtonState.Pressed && _viewModel.EditorEnabled && Mouse.DirectlyOver is FrameworkElement element)
+            {
                 _viewModel.PixelGridActionCommand.Execute(element.DataContext);
             }
         }
@@ -76,9 +104,10 @@ namespace UCH_ImageToLevelConverter.Views
                 for (int col = 0; col < _viewModel.Width; col++, i++)
                 {
                     var pixel = _viewModel.Pixels.Value[i];
-                    var brush = new SolidColorBrush();
 
-                    BindingOperations.SetBinding(brush, SolidColorBrush.ColorProperty, new Binding(nameof(PixelData.Color) + "." + nameof(Property<int>.Value)));
+                    var brush = new SolidColorBrush();
+                    BindingOperations.SetBinding(brush, SolidColorBrush.ColorProperty,
+                        new Binding(nameof(PixelData.Color) + "." + nameof(Property<int>.Value)));
 
                     var rectangle = new Rectangle
                     {
@@ -87,7 +116,6 @@ namespace UCH_ImageToLevelConverter.Views
                         Fill = brush,
                         DataContext = pixel
                     };
-                    //rectangle.SetBinding(Rectangle.FillProperty, )
 
                     Canvas.Children.Add(rectangle);
 

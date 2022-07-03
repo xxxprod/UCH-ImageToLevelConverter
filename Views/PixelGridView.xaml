@@ -3,62 +3,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-             xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
-             xmlns:linq="clr-namespace:System.Xml.Linq;assembly=System.Xml.XDocument"
-             xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" Background="DimGray" 
              DataContextChanged="OnDataContextChanged"
              SizeChanged="OnSizeChanged">
-    <ScrollViewer PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-        <Canvas Name="Canvas" PreviewMouseDown="Canvas_OnPreviewMouse" PreviewMouseMove="Canvas_OnPreviewMouse">
-
-        </Canvas>
-        <!--<ItemsControl ItemsSource="{Binding Pixels.Value}" Name="PixelGrid" Loaded="OnPixelGridLoaded" PreviewMouseMove="PixelGrid_OnPreviewMouse">
-            <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                    <Grid tools:GridHelpers.RowCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.(viewModels:IPixelGridViewModel.Height).Value}"
-                          tools:GridHelpers.ColumnCount="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}, Path=DataContext.(viewModels:IPixelGridViewModel.Width).Value}">
-                    </Grid>
-                </ItemsPanelTemplate>
-            </ItemsControl.ItemsPanel>
-
-            <ItemsControl.ItemContainerStyle>
-                <Style>
-                    <Style.Setters>
-                        <Setter Property="Grid.Row" Value="{Binding Row}" />
-                        <Setter Property="Grid.Column" Value="{Binding Col}" />
-                    </Style.Setters>
-                </Style>
-            </ItemsControl.ItemContainerStyle>
-
-            <ItemsControl.ItemTemplate>
-                <DataTemplate DataType="{x:Type linq:XElement}">
-                    <Grid Name="PixelHost" PreviewMouseDown="PixelGrid_OnPreviewMouse">
-                        <Border BorderThickness="0.2">
-                            <Border.Background>
-                                <SolidColorBrush Color="{Binding Color.Value}" />
-                            </Border.Background>
-                        </Border>
-                        <Border Name="PixelButton" Background="Gray" Opacity="0.4" Visibility="Collapsed" />
-                    </Grid>
-
-                    <DataTemplate.Triggers>
-                        <MultiDataTrigger>
-                            <MultiDataTrigger.Conditions>
-                                <Condition Binding="{Binding RelativeSource={RelativeSource Self}, Path=IsMouseOver}" Value="True" />
-                                <Condition Binding="{Binding RelativeSource={RelativeSource AncestorType={x:Type ItemsControl}}, 
-                                    Path=DataContext.(viewModels:IPixelGridViewModel.EditorEnabled).Value}" Value="True" />
-                            </MultiDataTrigger.Conditions>
-                            <MultiDataTrigger.Setters>
-                                <Setter Property="Cursor" Value="Hand" />
-                                <Setter TargetName="PixelButton" Property="Visibility" Value="Visible" />
-                            </MultiDataTrigger.Setters>
-                        </MultiDataTrigger>
-                    </DataTemplate.Triggers>
-
-                </DataTemplate>
-            </ItemsControl.ItemTemplate>
-        </ItemsControl>-->
+    <ScrollViewer Name="ZoomBox" PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+        <Canvas Name="Canvas" PreviewMouseDown="Canvas_OnPreviewMouseDown" PreviewMouseMove="Canvas_OnPreviewMouseMove" />
     </ScrollViewer>
 </UserControl>
