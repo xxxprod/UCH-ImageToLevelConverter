@@ -6,6 +6,7 @@
     <RootNamespace>UCH_ImageToLevelConverter</RootNamespace>
     <Nullable>disable</Nullable>
     <UseWPF>true</UseWPF>
+	<Version>1.0.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
