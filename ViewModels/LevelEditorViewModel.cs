@@ -20,6 +20,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public LevelEditorViewModel()
     {
         PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData)o));
+        OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
         NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
@@ -49,6 +50,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     }
 
     public DelegateCommand SaveLevelCommand { get; }
+    public DelegateCommand OptimizeAllCommand { get; }
     public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
@@ -86,12 +88,33 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         else if (OptimizerEnabled) OptimizeSection(blockData);
     }
 
+
+
+    private void OptimizeAll()
+    {
+        var blocksByColor = Blocks
+            .GroupBy(a => a.Color)
+            .ToDictionary(a => a.Key, a => a.ToList());
+
+        foreach ((Color color, List<BlockData> blocks) in blocksByColor) 
+            OptimizeBlocks(blocks);
+
+        OnBlocksChanged();
+    }
+
     private void OptimizeSection(BlockData block)
     {
         var blocksToOptimize = FindBlocksWithSameColor(block, block.Color)
             .SelectMany(a => a.BreakToCells())
             .ToList();
 
+        OptimizeBlocks(blocksToOptimize);
+
+        OnBlocksChanged();
+    }
+
+    private void OptimizeBlocks(List<BlockData> blocksToOptimize)
+    {
         if (blocksToOptimize.Count <= 1)
             return;
 
@@ -112,19 +135,19 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             blockGrid[row, col] = blockData;
         }
 
-        (int Width, int Height)[] blockSizes = new[]
+        (int Width, int Height)[] blockSizes =
         {
-            (16,6), (6,16),
-            (8,8),
-            (1,16), (16,1),
-            (4,4),
-            (2,4), (4,2),
-            (1,8), (8,1),
-            (2,2),
-            (1,4), (4,1),
-            (1,3), (3,1),
-            (1,2), (2,1),
-            (1,1)
+            (16, 6), (6, 16),
+            (8, 8),
+            (1, 16), (16, 1),
+            (4, 4),
+            (2, 4), (4, 2),
+            (1, 8), (8, 1),
+            (2, 2),
+            (1, 4), (4, 1),
+            (1, 3), (3, 1),
+            (1, 2), (2, 1),
+            (1, 1)
         };
 
         var ran = new Random();
@@ -151,7 +174,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
                 if (!foundHole)
                 {
-                    optimizedBlocks.Add(new BlockData(nextBlock.Top, nextBlock.Left, blockWidth, blockHeight, nextBlock.Color));
+                    optimizedBlocks.Add(new BlockData(nextBlock.Top, nextBlock.Left, blockWidth, blockHeight,
+                        nextBlock.Color));
 
                     for (int deltaRow = 0; deltaRow < blockHeight; deltaRow++)
                     {
@@ -171,11 +195,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
         foreach (var optimizedBlock in optimizedBlocks)
             Blocks.SetBlock(optimizedBlock);
-
-
-        OnBlocksChanged();
-
-        OptimizerEnabled.Value = false;
     }
 
     private void ErasePixel(BlockData block)
