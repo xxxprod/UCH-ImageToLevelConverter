@@ -96,7 +96,10 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         var blocksByColor = Blocks
             .GroupBy(a => a.Color)
-            .ToDictionary(a => a.Key, a => a.ToList());
+            .ToDictionary(
+                a => a.Key, 
+                a => a.SelectMany(b => b.BreakToCells()).ToList()
+            );
 
         foreach ((Color color, List<BlockData> blocks) in blocksByColor)
             OptimizeBlocks(blocks);
