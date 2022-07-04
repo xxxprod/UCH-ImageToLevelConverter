@@ -36,7 +36,6 @@ public class BlockDataCollection : IEnumerable<BlockData>
         var cellIdx = GetCellIndices(block).ToArray();
         var blockRefs = cellIdx
             .Select(i => _blockRefs[i])
-            .Where(r => r >= 0)
             .Distinct()
             .ToArray();
         var placedBlocks = blockRefs
@@ -111,8 +110,8 @@ public class BlockDataCollection : IEnumerable<BlockData>
     {
         if (row < 0) row = 0;
         if (col < 0) col = 0;
-        if (row >= Height) row = Height;
-        if (col >= Width) col = Width;
+        if (row >= Height) row = Height - 1;
+        if (col >= Width) col = Width - 1;
         return row * Width + col;
     }
 
@@ -140,15 +139,15 @@ public class BlockDataCollection : IEnumerable<BlockData>
 
         public bool MoveNext()
         {
-            while(true)
+            while (true)
             {
                 if (_index == _owner._blockRefs.Length - 1)
                     return false;
-                
+
                 _index++;
-                
+
                 var blockRef = _owner._blockRefs[_index];
-                if(_visitedRefs[blockRef])
+                if (_visitedRefs[blockRef])
                     continue;
                 _visitedRefs[blockRef] = true;
 

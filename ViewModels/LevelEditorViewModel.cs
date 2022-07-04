@@ -102,7 +102,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 a => a.SelectMany(b => b.BreakToCells()).ToList()
             );
 
-        foreach ((Color color, List<BlockData> blocks) in blocksByColor)
+        foreach ((Color _, List<BlockData> blocks) in blocksByColor)
             OptimizeBlocks(blocks);
 
         OnBlocksChanged();

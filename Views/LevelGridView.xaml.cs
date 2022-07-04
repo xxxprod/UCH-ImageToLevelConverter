@@ -20,7 +20,7 @@ namespace UCH_ImageToLevelConverter.Views
 
         private IPixelGridViewModel _viewModel;
         private bool _dragEnabled;
-        private Point _dragStart;
+        private Point _lastMousePosition;
 
         public LevelGridView() => InitializeComponent();
 
@@ -44,7 +44,7 @@ namespace UCH_ImageToLevelConverter.Views
             if (e.MiddleButton == MouseButtonState.Pressed)
             {
                 _dragEnabled = true;
-                _dragStart = e.GetPosition(ZoomBox);
+                _lastMousePosition = e.GetPosition(ZoomBox);
             }
             else if (Mouse.LeftButton == MouseButtonState.Pressed && _viewModel.EditorEnabled && Mouse.DirectlyOver is FrameworkElement element)
             {
@@ -56,6 +56,12 @@ namespace UCH_ImageToLevelConverter.Views
         {
             if (_viewModel == null) return;
 
+            var newPos = e.GetPosition(ZoomBox);
+            var delta = newPos - _lastMousePosition;
+            if (delta == new Vector())
+                return;
+            _lastMousePosition = newPos;
+
             if (_dragEnabled)
             {
                 if (e.MiddleButton != MouseButtonState.Pressed)
@@ -64,9 +70,6 @@ namespace UCH_ImageToLevelConverter.Views
                     return;
                 }
 
-                var newPos = e.GetPosition(ZoomBox);
-                var delta = newPos - _dragStart;
-                _dragStart = newPos;
 
                 ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset - delta.Y);
                 ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset - delta.X);
@@ -99,7 +102,7 @@ namespace UCH_ImageToLevelConverter.Views
             var blocks = _viewModel?.Blocks;
             if (blocks == null)
                 return;
-            
+
             foreach (BlockData block in blocks)
             {
                 var brush = new SolidColorBrush();
