@@ -1,5 +1,7 @@
 using System;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
@@ -18,8 +20,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
         RegisterPropertyChangedCallback(UpdatePreview,
             ImageFileName, Width, Height, MaxColors);
-
-        Blocks = new BlockDataCollection(Width, Height);
+        UpdatePreview();
     }
 
     public DelegateCommand OpenFileCommand { get; }
@@ -42,25 +43,30 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     private void OpenFile()
     {
         var openFileDialog = new OpenFileDialog();
-        if (openFileDialog.ShowDialog() == true) 
+        if (openFileDialog.ShowDialog() == true)
             ImageFileName.Value = openFileDialog.FileName;
     }
 
     private void UpdatePreview()
     {
-        if (ImageFileName.Value == null)
-            return;
-        
-        OriginalImage.Value = new BitmapImage(new Uri(ImageFileName.Value));
+        if (string.IsNullOrWhiteSpace(ImageFileName.Value))
+        {
+            Blocks = new BlockDataCollection(Width, Height);
+        }
+        else
+        {
+            OriginalImage.Value = new BitmapImage(new Uri(ImageFileName.Value));
 
-        var bitmapSource = OriginalImage.Value
-            .Resize(Width, Height)
-            .Format(PixelFormats.Rgb24);
+            var bitmapSource = OriginalImage.Value
+                .Resize(Width, Height)
+                .Format(PixelFormats.Rgb24);
 
-        if (MaxColors.Value.HasValue)
-            bitmapSource = bitmapSource.KNNReduceColors(MaxColors.Value.Value);
+            if (MaxColors.Value.HasValue)
+                bitmapSource = bitmapSource.KNNReduceColors(MaxColors.Value.Value);
 
-        Blocks = new BlockDataCollection(Width, Height, bitmapSource.GetPixelData());
+            Blocks = new BlockDataCollection(Width, Height, bitmapSource.GetPixelData());
+        }
+
         OnBlocksChanged();
     }
 

@@ -7,18 +7,20 @@ public static class BlockDataExtensions
 {
     public static IEnumerable<BlockData> BreakToCells(this IEnumerable<BlockData> blocks)
     {
-        foreach (var block in blocks.ToArray())
+        return blocks.ToArray().SelectMany(BreakToCells);
+    }
+
+    private static IEnumerable<BlockData> BreakToCells(this BlockData block)
+    {
+        if (block.Cells == 1)
+            yield return block;
+        else
         {
-            if (block.Cells == 1)
-                yield return block;
-            else
+            for (int row = block.Top; row <= block.Bottom; row++)
             {
-                for (int row = block.Top; row <= block.Bottom; row++)
+                for (int col = block.Left; col <= block.Right; col++)
                 {
-                    for (int col = block.Left; col <= block.Right; col++)
-                    {
-                        yield return new BlockData(row, col, block.Color);
-                    }
+                    yield return new BlockData(row, col, block.Color);
                 }
             }
         }

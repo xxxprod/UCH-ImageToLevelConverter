@@ -147,8 +147,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         var blocksToOptimize = FindBlocksWithSameColor(blockData, blockData.Color)
             .BreakToCells();
-        
-        foreach (BlockData block in blocksToOptimize) 
+
+        foreach (BlockData block in blocksToOptimize)
             Blocks.SetBlock(block);
 
         OnBlocksChanged();
@@ -158,8 +158,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void BreakAll()
     {
         PushUndoData(Blocks.CopyBlocks());
-        
-        foreach (BlockData block in Blocks.BreakToCells()) 
+
+        foreach (BlockData block in Blocks.BreakToCells())
             Blocks.SetBlock(block);
 
         OnBlocksChanged();
@@ -280,13 +280,19 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void ErasePixel(BlockData block)
     {
-        foreach (var foundBlock in FindBlocksWithSameColor(block, block.Color))
-        {
-            foundBlock.Color.Value = BlockData.EmptyColor;
+        var blocksWithSameColor = FindBlocksWithSameColor(block, block.Color);
+        if (!MagicEraserEnabled)
+            blocksWithSameColor = blocksWithSameColor.Take(1);
 
-            if (!MagicEraserEnabled)
-                break;
+        int count = 0;
+        foreach (BlockData cell in blocksWithSameColor.BreakToCells())
+        {
+            Blocks.SetBlock(new BlockData(cell.Top, cell.Left));
+            count++;
         }
+
+        if (count > 0)
+            OnBlocksChanged();
     }
 
     private IEnumerable<BlockData> FindBlocksWithSameColor(BlockData startBlock, Color color)
@@ -320,13 +326,12 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void SaveLevel()
     {
-        var snapshotXml = Blocks.CreateSnapshotXml();
+        string snapshotXml = Blocks.CreateSnapshotXml();
 
-        var compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(snapshotXml));
+        byte[] compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(snapshotXml));
 
         if (!Directory.Exists(SnapshotsDirectory))
             Directory.CreateDirectory(SnapshotsDirectory);
-
 
         var filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
 
