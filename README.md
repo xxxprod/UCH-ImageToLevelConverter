@@ -8,10 +8,12 @@ Some of the implemented features are:
 - Convert Images to UCH-Levels
 - Set the number of Rows & Columns of the Level
 - [optional & recommended] Limit the number of colors. (This helps further when you want to optimize the level)
-- Configure the distance of the Borders
 - Pick Colors from the loaded image
 - Paint with any color new Blocks
+- Fill whole regions with same color
 - Erase Blocks one-by-one
 - Erase whole regions of same color (Color Reduction helps here)
-- Optimize a region (click into any region and all surrounding blocks with same color get optimized)
-- Optimize whole Level
+- Optimize or Break a region (click into any region and all surrounding blocks with same color get optimized)
+- Optimize or Break whole Level
+- Zoom grid with Ctrl & mouse wheel
+- Pan zoomed grid with middle mouse button

@@ -78,7 +78,7 @@
                 <Label />
 
                 <Label Content="Max Colors:" />
-                <TextBox Text="{Binding MaxColors.Value}" Style="{DynamicResource NumberTextBoxStyle}" tools:TextBoxHelpers.UpdateSourceDelay="2"/>
+                <TextBox Text="{Binding MaxColors.Value, TargetNullValue=''}" Style="{DynamicResource NumberTextBoxStyle}" tools:TextBoxHelpers.UpdateSourceDelay="2"/>
             </UniformGrid>
         </ScrollViewer>
 
