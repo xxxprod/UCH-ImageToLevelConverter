@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows.Input;
 
 namespace UCH_ImageToLevelConverter.Views
@@ -10,15 +11,11 @@ namespace UCH_ImageToLevelConverter.Views
             .SelectMany(i => new[] { $"D{i}", $"NumPad{i}" })
             .ToHashSet();
 
+        private readonly Regex _filterNumericCharacterRegex = new("[^0-9]+", RegexOptions.Compiled);
+
         public ImageSelectorView() => InitializeComponent();
 
-
-        private void OnNumberTextBoxPreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key is Key.Delete or Key.Back or Key.Left or Key.Right or Key.Enter or Key.Home or Key.End or Key.Tab)
-                return;
-
-            e.Handled = !_numericKeyCodes.Contains(e.Key.ToString());
-        }
+        private void OnPreviewTextInput(object sender, TextCompositionEventArgs e) => 
+            e.Handled = _filterNumericCharacterRegex.IsMatch(e.Text);
     }
 }

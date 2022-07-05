@@ -64,21 +64,6 @@
             <StackPanel Orientation="Vertical">
                 <UniformGrid Columns="2" VerticalAlignment="Top">
 
-                    <Label Content="Wall Offsets" FontWeight="Bold" />
-                    <Label />
-
-                    <Label Content="Left:" />
-                    <TextBox Text="{Binding WallOffsetLeft.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                    <Label Content="Right:" />
-                    <TextBox Text="{Binding WallOffsetRight.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                    <Label Content="Top:" />
-                    <TextBox Text="{Binding WallOffsetTop.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-                    <Label Content="Bottom:" />
-                    <TextBox Text="{Binding WallOffsetBottom.Value}" Style="{DynamicResource NumberTextBoxStyle}"/>
-
-                    <Label />
-                    <Label />
-
                     <Label Content="Pick Color" FontWeight="Bold" />
                     <CheckBox IsChecked="{Binding ColorPickingEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
