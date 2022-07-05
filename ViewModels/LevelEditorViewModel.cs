@@ -294,14 +294,21 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (!MagicEraserEnabled)
             blocksWithSameColor = blocksWithSameColor.Take(1);
 
-        int count = 0;
-        foreach (BlockData cell in blocksWithSameColor.BreakToCells())
+        int brokenCellsCount = 0;
+        foreach (BlockData cell in blocksWithSameColor)
         {
-            Blocks.SetBlock(new BlockData(cell.Top, cell.Left));
-            count++;
+            if (cell.Cells == 1)
+            {
+                cell.Color.Value = BlockData.EmptyColor;
+            }
+            else
+            {
+                Blocks.SetBlock(new BlockData(cell.Top, cell.Left));
+                brokenCellsCount++;
+            }
         }
 
-        if (count > 0)
+        if (brokenCellsCount > 0)
             OnBlocksChanged();
     }
 
