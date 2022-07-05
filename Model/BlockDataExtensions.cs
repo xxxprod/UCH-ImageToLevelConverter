@@ -19,4 +19,12 @@ public static class BlockDataExtensions
             }
         }
     }
+
+    public static IEnumerable<BlockData> CopyBlocks(this IEnumerable<BlockData> blocks)
+    {
+        foreach (BlockData block in blocks)
+        {
+            yield return new BlockData(block);
+        }
+    }
 }

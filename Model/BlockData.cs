@@ -18,6 +18,15 @@ public class BlockData
         Color.Value = color;
     }
 
+    public BlockData(BlockData block)
+    {
+        Left = block.Left;
+        Right = block.Right;
+        Top = block.Top;
+        Bottom = block.Bottom;
+        Color.Value = block.Color;
+    }
+
     public int Left { get; }
     public int Top { get; }
     public int Right { get; }

@@ -18,9 +18,38 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public readonly Color EmptyColor = new();
     private BlockDataCollection _blocks;
 
+    private readonly Stack<List<BlockData>> _undoHistory = new();
+    private readonly Stack<List<BlockData>> _redoHistory = new();
+
     public LevelEditorViewModel()
     {
         PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData)o));
+        UndoCommand = new DelegateCommand(o =>
+        {
+            _redoHistory.Push(Blocks.CopyBlocks().ToList());
+
+            List<BlockData> blockData = _undoHistory.Pop();
+
+            foreach (BlockData block in blockData)
+                Blocks.SetBlock(block);
+
+            CanUndo.Value = _undoHistory.Any();
+            CanRedo.Value = true;
+            OnBlocksChanged();
+        });
+        RedoCommand = new DelegateCommand(o =>
+        {
+            _undoHistory.Push(Blocks.CopyBlocks().ToList());
+
+            List<BlockData> blockData = _redoHistory.Pop();
+
+            foreach (BlockData block in blockData)
+                Blocks.SetBlock(block);
+
+            CanUndo.Value = true;
+            CanRedo.Value = _redoHistory.Any();
+            OnBlocksChanged();
+        });
         OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
         NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
@@ -51,10 +80,15 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     }
 
     public DelegateCommand SaveLevelCommand { get; }
+    public DelegateCommand UndoCommand { get; }
+    public DelegateCommand RedoCommand { get; }
     public DelegateCommand OptimizeAllCommand { get; }
     public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
+
+    public Property<bool> CanUndo { get; } = new(false);
+    public Property<bool> CanRedo { get; } = new(false);
 
     public IntProperty WallOffsetLeft { get; } = new(5, 0, 20);
     public IntProperty WallOffsetRight { get; } = new(5, 0, 20);
@@ -81,6 +115,10 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<bool> EditorEnabled { get; } = new();
 
+    public void StartRecordingGridActions()
+    {
+        PushUndoData(Blocks.CopyBlocks());
+    }
 
     private void OnPixelGridAction(BlockData blockData)
     {
@@ -95,6 +133,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void OptimizeAll()
     {
+        PushUndoData(Blocks.CopyBlocks());
+
         var blocksByColor = Blocks
             .GroupBy(a => a.Color)
             .ToDictionary(
@@ -464,5 +504,13 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void UpdateLevelFullness()
     {
         LevelFullness.Value = Blocks.Count(a => a.Color.Value != new Color()) * 5 + 10; // Add 10 for Start and Goal
+    }
+
+    private void PushUndoData(IEnumerable<BlockData> undoData)
+    {
+        _undoHistory.Push(undoData.ToList());
+        _redoHistory.Clear();
+        CanRedo.Value = false;
+        CanUndo.Value = true;
     }
 }

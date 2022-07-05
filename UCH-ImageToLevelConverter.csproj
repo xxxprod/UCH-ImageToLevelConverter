@@ -15,6 +15,7 @@
     <None Remove="Icons\eraser.ico" />
     <None Remove="Icons\optimize.png" />
     <None Remove="Icons\UCH_32x32.png" />
+    <None Remove="Icons\undo.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,6 +40,7 @@
   <ItemGroup>
     <Resource Include="Icons\color_picker.ico" />
     <Resource Include="Icons\eraser.ico" />
+    <Resource Include="Icons\undo.png" />
   </ItemGroup>
 
   <ItemGroup>

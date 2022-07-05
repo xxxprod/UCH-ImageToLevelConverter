@@ -30,6 +30,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> EditorEnabled { get; } = new();
     public BlockDataCollection Blocks { get; private set; }
     public IntProperty LevelFullness { get; } = new();
+    
     public event Action BlocksChanged;
     public IntProperty Width { get; } = new(70, 0, 150);
     public IntProperty Height { get; } = new(50, 0, 150);
@@ -73,4 +74,6 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     {
         LevelFullness.Value = Blocks.Count(a => a.Color.Value != new Color()) * 5 + 10; // Add 10 for Start and Goal
     }
+    
+    public void StartRecordingGridActions() => throw new NotImplementedException();
 }

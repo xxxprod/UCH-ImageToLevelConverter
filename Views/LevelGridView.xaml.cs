@@ -21,6 +21,7 @@ namespace UCH_ImageToLevelConverter.Views
         private IPixelGridViewModel _viewModel;
         private bool _dragEnabled;
         private Point _lastMousePosition;
+        private bool _recordingGridActions;
 
         public LevelGridView() => InitializeComponent();
 
@@ -41,6 +42,9 @@ namespace UCH_ImageToLevelConverter.Views
         {
             if (_viewModel == null) return;
 
+            if (_recordingGridActions || _dragEnabled)
+                return;
+
             if (e.MiddleButton == MouseButtonState.Pressed)
             {
                 _dragEnabled = true;
@@ -48,6 +52,8 @@ namespace UCH_ImageToLevelConverter.Views
             }
             else if (Mouse.LeftButton == MouseButtonState.Pressed && _viewModel.EditorEnabled && Mouse.DirectlyOver is FrameworkElement element)
             {
+                _recordingGridActions = true;
+                _viewModel.StartRecordingGridActions();
                 _viewModel.PixelGridActionCommand.Execute(element.DataContext);
             }
         }
@@ -74,9 +80,18 @@ namespace UCH_ImageToLevelConverter.Views
                 ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset - delta.Y);
                 ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset - delta.X);
             }
-            else if (Mouse.LeftButton == MouseButtonState.Pressed && _viewModel.EditorEnabled && Mouse.DirectlyOver is FrameworkElement element)
+            else if (_recordingGridActions)
             {
-                _viewModel.PixelGridActionCommand.Execute(element.DataContext);
+                if (e.LeftButton != MouseButtonState.Pressed)
+                {
+                    _recordingGridActions = false;
+                    return;
+                }
+
+                if (Mouse.DirectlyOver is FrameworkElement element)
+                {
+                    _viewModel.PixelGridActionCommand.Execute(element.DataContext);
+                }
             }
         }
 

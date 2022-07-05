@@ -4,8 +4,6 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
-        xmlns:linq="clr-namespace:System.Xml.Linq;assembly=System.Xml.XDocument"
-        xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
         xmlns:pt="http://propertytools.org/wpf"
         xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
         mc:Ignorable="d"
@@ -97,7 +95,7 @@
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
-                    
+
                     <Label />
                     <Label />
 
@@ -114,7 +112,48 @@
             </StackPanel>
         </ScrollViewer>
 
-        <views:LevelGridView Grid.Column="1" Grid.Row="2" />
+        <Grid Grid.Column="1" Grid.Row="2" >
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <ToolBar ToolBarTray.IsLocked="True">
+                <Button Name="UndoButton" ToolTip="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo.Value}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.4"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.Content>
+                        <Image Source="../Icons/undo.png" Width="16" Height="16" />
+                    </Button.Content>
+                </Button>
+                <Button ToolTip="Redo" Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo.Value}">
+                    <Button.Style>
+                        <Style TargetType="Button">
+                            <Style.Triggers>
+                                <Trigger Property="IsEnabled" Value="False">
+                                    <Setter Property="Opacity" Value="0.4"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </Button.Style>
+                    <Button.Content>
+                        <Image Source="../Icons/undo.png" Width="16" Height="16">
+                            <Image.LayoutTransform>
+                                <ScaleTransform ScaleX="-1" ScaleY="1"></ScaleTransform>
+                            </Image.LayoutTransform>
+                        </Image>
+                    </Button.Content>
+                </Button>
+            </ToolBar>
+
+            <views:LevelGridView Grid.Row="1" />
+        </Grid>
 
         <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Vertical" Margin="0, 14, 14, 14">
             <Button Content="Save Level" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=SaveLevelCommand}"/>
