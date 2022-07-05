@@ -25,11 +25,6 @@
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style.Setters>
         </Style>
-        <Style x:Key="NumberTextBoxStyle" BasedOn="{StaticResource TextBoxStyle}"  TargetType="TextBox">
-            <Style.Setters>
-                <Setter Property="HorizontalContentAlignment" Value="Right" />
-            </Style.Setters>
-        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -109,7 +104,7 @@
                     <Label Content="Optimize Region" FontWeight="Bold" />
                     <CheckBox IsChecked="{Binding OptimizerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
-                            <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                            <Image Source="../Icons/optimize.png" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
 

@@ -13,10 +13,12 @@
     <None Remove="Icons\brush.png" />
     <None Remove="Icons\color_picker.ico" />
     <None Remove="Icons\eraser.ico" />
+    <None Remove="Icons\optimize.png" />
     <None Remove="Icons\UCH_32x32.png" />
   </ItemGroup>
 
   <ItemGroup>
+    <Resource Include="Icons\optimize.png" />
     <Resource Include="Icons\UCH_32x32.png" />
   </ItemGroup>
 
