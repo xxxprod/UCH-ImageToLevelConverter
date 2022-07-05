@@ -49,6 +49,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             OnBlocksChanged();
         });
         OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
+        UnoptimizeCommand = new DelegateCommand(o => BreakAll());
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
         NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
@@ -58,7 +59,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             MagicEraserEnabled,
             ColorPickingEnabled,
             PaintBrushEnabled,
-            OptimizerEnabled
+            OptimizerEnabled,
+            UnoptimizerEnabled
         };
 
         foreach (var pixelGridAction in pixelGridActions)
@@ -81,6 +83,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public DelegateCommand UndoCommand { get; }
     public DelegateCommand RedoCommand { get; }
     public DelegateCommand OptimizeAllCommand { get; }
+    public DelegateCommand UnoptimizeCommand { get; }
     public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
@@ -93,6 +96,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> MagicEraserEnabled { get; } = new();
     public Property<bool> PaintBrushEnabled { get; } = new();
     public Property<bool> OptimizerEnabled { get; } = new();
+    public Property<bool> UnoptimizerEnabled { get; } = new();
 
     public Property<Color> SelectedColor { get; } = new(Colors.Black);
 
@@ -134,10 +138,32 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         }
         else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
         else if (OptimizerEnabled) OptimizeSection(blockData);
+        else if (UnoptimizerEnabled) BreakSection(blockData);
 
         UpdateLevelFullness();
     }
 
+    private void BreakSection(BlockData blockData)
+    {
+        var blocksToOptimize = FindBlocksWithSameColor(blockData, blockData.Color)
+            .BreakToCells();
+        
+        foreach (BlockData block in blocksToOptimize) 
+            Blocks.SetBlock(block);
+
+        OnBlocksChanged();
+    }
+
+
+    private void BreakAll()
+    {
+        PushUndoData(Blocks.CopyBlocks());
+        
+        foreach (BlockData block in Blocks.BreakToCells()) 
+            Blocks.SetBlock(block);
+
+        OnBlocksChanged();
+    }
 
     private void OptimizeAll()
     {
@@ -148,7 +174,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             .GroupBy(a => a.Color)
             .ToDictionary(
                 a => a.Key,
-                a => a.SelectMany(b => b.BreakToCells()).ToList()
+                a => a.BreakToCells().ToList()
             );
 
         foreach ((Color _, List<BlockData> blocks) in blocksByColor)
@@ -160,7 +186,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void OptimizeSection(BlockData block)
     {
         var blocksToOptimize = FindBlocksWithSameColor(block, block.Color)
-            .SelectMany(a => a.BreakToCells())
+            .BreakToCells()
             .ToList();
 
         OptimizeBlocks(blocksToOptimize);

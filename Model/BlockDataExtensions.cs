@@ -1,20 +1,24 @@
 using System.Collections.Generic;
+using System.Linq;
 
 namespace UCH_ImageToLevelConverter.Model;
 
 public static class BlockDataExtensions
 {
-    public static IEnumerable<BlockData> BreakToCells(this BlockData block)
+    public static IEnumerable<BlockData> BreakToCells(this IEnumerable<BlockData> blocks)
     {
-        if(block.Cells == 1)
-            yield return block;
-        else
+        foreach (var block in blocks.ToArray())
         {
-            for (int row = block.Top; row <= block.Bottom; row++)
+            if (block.Cells == 1)
+                yield return block;
+            else
             {
-                for (int col = block.Left; col <= block.Right; col++)
+                for (int row = block.Top; row <= block.Bottom; row++)
                 {
-                    yield return new BlockData(row, col, block.Color);
+                    for (int col = block.Left; col <= block.Right; col++)
+                    {
+                        yield return new BlockData(row, col, block.Color);
+                    }
                 }
             }
         }

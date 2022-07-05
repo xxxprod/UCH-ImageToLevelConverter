@@ -17,7 +17,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
         PixelGridActionCommand = new DelegateCommand(_ => throw new NotImplementedException());
 
         RegisterPropertyChangedCallback(UpdatePreview,
-            OriginalImage, Width, Height, MaxColors);
+            ImageFileName, Width, Height, MaxColors);
 
         Blocks = new BlockDataCollection(Width, Height);
     }
@@ -42,17 +42,16 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     private void OpenFile()
     {
         var openFileDialog = new OpenFileDialog();
-        if (openFileDialog.ShowDialog() == true)
-        {
+        if (openFileDialog.ShowDialog() == true) 
             ImageFileName.Value = openFileDialog.FileName;
-            OriginalImage.Value = new BitmapImage(new Uri(openFileDialog.FileName));
-        }
     }
 
     private void UpdatePreview()
     {
-        if (OriginalImage.Value == null)
+        if (ImageFileName.Value == null)
             return;
+        
+        OriginalImage.Value = new BitmapImage(new Uri(ImageFileName.Value));
 
         var bitmapSource = OriginalImage.Value
             .Resize(Width, Height)

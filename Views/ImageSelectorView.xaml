@@ -26,7 +26,7 @@
         <Style x:Key="NumberTextBoxStyle" BasedOn="{StaticResource TextBoxStyle}"  TargetType="TextBox">
             <Style.Setters>
                 <Setter Property="HorizontalContentAlignment" Value="Right" />
-                <EventSetter Event="PreviewTextInput" Handler="OnPreviewTextInput"></EventSetter>
+                <EventSetter Event="PreviewTextInput" Handler="OnPreviewTextInput" />
             </Style.Setters>
         </Style>
     </UserControl.Resources>

@@ -109,6 +109,21 @@
                 </UniformGrid>
 
                 <Button Content="Optimize All" Command="{Binding OptimizeAllCommand}"/>
+
+                <UniformGrid Columns="2" VerticalAlignment="Top">
+
+                    <Label />
+                    <Label />
+
+                    <Label Content="Unoptimize Region" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding UnoptimizerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/optimize.png" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
+                </UniformGrid>
+                <Button Content="Unoptimize All" Command="{Binding UnoptimizeCommand}"/>
             </StackPanel>
         </ScrollViewer>
 
