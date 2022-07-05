@@ -13,11 +13,13 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public ImageSelectorViewModel()
     {
         SelectImageToConvertCommand = new DelegateCommand(_ => SelectImageToConvert());
-        NavigateToLevelEditorCommand = new DelegateCommand(_ => OriginalImage.Value != null, _ => { });
+        NavigateToLevelEditorCommand = new DelegateCommand(_ => { });
         PixelGridActionCommand = new DelegateCommand(_ => throw new NotImplementedException());
 
         RegisterPropertyChangedCallback(UpdatePreview,
             OriginalImage, Width, Height, MaxColors);
+
+        Blocks = new BlockDataCollection(Width, Height);
     }
 
     public DelegateCommand SelectImageToConvertCommand { get; }

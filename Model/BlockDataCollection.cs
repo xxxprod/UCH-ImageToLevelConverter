@@ -10,6 +10,22 @@ public class BlockDataCollection : IEnumerable<BlockData>
     private readonly int[] _blockRefs;
     private readonly List<BlockData> _blocks;
 
+    public BlockDataCollection(int width, int height)
+    {
+        Width = width;
+        Height = height;
+        _blockRefs = new int[Width * Height];
+        for (int i = 0; i < _blockRefs.Length; i++) _blockRefs[i] = i;
+        _blocks = new List<BlockData>();
+        for (int row = 0; row < Height; row++)
+        {
+            for (int col = 0; col < Width; col++)
+            {
+                _blocks.Add(new BlockData(row, col));
+            }
+        }
+    }
+
     public BlockDataCollection(int width, int height, IEnumerable<BlockData> blocks)
     {
         Width = width;
