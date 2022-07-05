@@ -80,6 +80,13 @@
                         </CheckBox.Content>
                     </CheckBox>
 
+                    <Label Content="Fill Region" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding FillBrushEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/brush.png" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
                     <Label />
                     <Label />
 
@@ -115,15 +122,15 @@
                     <Label />
                     <Label />
 
-                    <Label Content="Unoptimize Region" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding UnoptimizerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Label Content="Break into Cells" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding BreakBlocksEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/optimize.png" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
 
                 </UniformGrid>
-                <Button Content="Unoptimize All" Command="{Binding UnoptimizeCommand}"/>
+                <Button Content="Break All into Cells" Command="{Binding BreakAllCommand}"/>
             </StackPanel>
         </ScrollViewer>
 

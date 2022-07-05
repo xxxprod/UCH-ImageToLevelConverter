@@ -49,7 +49,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             OnBlocksChanged();
         });
         OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
-        UnoptimizeCommand = new DelegateCommand(o => BreakAll());
+        BreakAllCommand = new DelegateCommand(o => BreakAll());
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
         NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
@@ -59,8 +59,9 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             MagicEraserEnabled,
             ColorPickingEnabled,
             PaintBrushEnabled,
+            FillBrushEnabled,
             OptimizerEnabled,
-            UnoptimizerEnabled
+            BreakBlocksEnabled
         };
 
         foreach (var pixelGridAction in pixelGridActions)
@@ -83,7 +84,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public DelegateCommand UndoCommand { get; }
     public DelegateCommand RedoCommand { get; }
     public DelegateCommand OptimizeAllCommand { get; }
-    public DelegateCommand UnoptimizeCommand { get; }
+    public DelegateCommand BreakAllCommand { get; }
     public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
@@ -95,8 +96,9 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> PixelEraserEnabled { get; } = new();
     public Property<bool> MagicEraserEnabled { get; } = new();
     public Property<bool> PaintBrushEnabled { get; } = new();
+    public Property<bool> FillBrushEnabled { get; } = new();
     public Property<bool> OptimizerEnabled { get; } = new();
-    public Property<bool> UnoptimizerEnabled { get; } = new();
+    public Property<bool> BreakBlocksEnabled { get; } = new();
 
     public Property<Color> SelectedColor { get; } = new(Colors.Black);
 
@@ -137,8 +139,13 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 SelectedColor.Value = blockData.Color;
         }
         else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
+        else if (FillBrushEnabled)
+        {
+            foreach (BlockData block in FindBlocksWithSameColor(blockData, blockData.Color))
+                block.Color.Value = SelectedColor.Value;
+        }
         else if (OptimizerEnabled) OptimizeSection(blockData);
-        else if (UnoptimizerEnabled) BreakSection(blockData);
+        else if (BreakBlocksEnabled) BreakSection(blockData);
 
         UpdateLevelFullness();
     }
@@ -146,6 +153,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void BreakSection(BlockData blockData)
     {
         var blocksToOptimize = FindBlocksWithSameColor(blockData, blockData.Color)
+            .Where(a => a.Color != BlockData.EmptyColor)
             .BreakToCells();
 
         foreach (BlockData block in blocksToOptimize)
@@ -186,6 +194,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void OptimizeSection(BlockData block)
     {
         var blocksToOptimize = FindBlocksWithSameColor(block, block.Color)
+            .Where(a => a.Color != BlockData.EmptyColor)
             .BreakToCells()
             .ToList();
 
@@ -280,7 +289,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void ErasePixel(BlockData block)
     {
-        var blocksWithSameColor = FindBlocksWithSameColor(block, block.Color);
+        var blocksWithSameColor = FindBlocksWithSameColor(block, block.Color)
+            .Where(a => a.Color != BlockData.EmptyColor);
         if (!MagicEraserEnabled)
             blocksWithSameColor = blocksWithSameColor.Take(1);
 
@@ -297,9 +307,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private IEnumerable<BlockData> FindBlocksWithSameColor(BlockData startBlock, Color color)
     {
-        if (color == BlockData.EmptyColor)
-            yield break;
-
         var queue = new Queue<BlockData>();
         var done = new HashSet<BlockData>();
         queue.Enqueue(startBlock);
