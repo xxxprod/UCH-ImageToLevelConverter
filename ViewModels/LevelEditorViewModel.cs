@@ -18,35 +18,35 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public readonly Color EmptyColor = new();
     private BlockDataCollection _blocks;
 
-    private readonly Stack<List<BlockData>> _undoHistory = new();
-    private readonly Stack<List<BlockData>> _redoHistory = new();
+    private readonly Stack<BlockData[]> _undoHistory = new();
+    private readonly Stack<BlockData[]> _redoHistory = new();
 
     public LevelEditorViewModel()
     {
         PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData)o));
         UndoCommand = new DelegateCommand(o =>
         {
-            _redoHistory.Push(Blocks.CopyBlocks().ToList());
+            _redoHistory.Push(Blocks.CopyBlocks().ToArray());
 
-            List<BlockData> blockData = _undoHistory.Pop();
+            BlockData[] blockData = _undoHistory.Pop();
 
             foreach (BlockData block in blockData)
                 Blocks.SetBlock(block);
 
             CanUndo.Value = _undoHistory.Any();
-            CanRedo.Value = true;
+            CanRedo.Value = _redoHistory.Any();
             OnBlocksChanged();
         });
         RedoCommand = new DelegateCommand(o =>
         {
-            _undoHistory.Push(Blocks.CopyBlocks().ToList());
+            _undoHistory.Push(Blocks.CopyBlocks().ToArray());
 
-            List<BlockData> blockData = _redoHistory.Pop();
+            BlockData[] blockData = _redoHistory.Pop();
 
             foreach (BlockData block in blockData)
                 Blocks.SetBlock(block);
 
-            CanUndo.Value = true;
+            CanUndo.Value = _undoHistory.Any();
             CanRedo.Value = _redoHistory.Any();
             OnBlocksChanged();
         });
@@ -108,7 +108,15 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public BlockDataCollection Blocks
     {
         get => _blocks;
-        set { _blocks = value; OnBlocksChanged(); }
+        set
+        {
+            _blocks = value;
+            OnBlocksChanged();
+            _undoHistory.Clear();
+            _redoHistory.Clear();
+            CanUndo.Value = false;
+            CanRedo.Value = false;
+        }
     }
 
     public event Action BlocksChanged;
@@ -508,7 +516,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void PushUndoData(IEnumerable<BlockData> undoData)
     {
-        _undoHistory.Push(undoData.ToList());
+        _undoHistory.Push(undoData.ToArray());
         _redoHistory.Clear();
         CanRedo.Value = false;
         CanUndo.Value = true;
