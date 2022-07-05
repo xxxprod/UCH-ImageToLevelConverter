@@ -149,9 +149,9 @@ namespace UCH_ImageToLevelConverter.Views
             Canvas.Width = _viewModel.Blocks.Width * (CellSize + Space);
             Canvas.Height = _viewModel.Blocks.Height * (CellSize + Space);
 
-            _sizeScale = _viewModel.Blocks.Height / (double)_viewModel.Blocks.Width < ActualHeight / ActualWidth
-                ? ActualWidth / Canvas.Width
-                : ActualHeight / Canvas.Height;
+            _sizeScale = _viewModel.Blocks.Height / (double)_viewModel.Blocks.Width < ZoomBox.ActualHeight / ZoomBox.ActualWidth
+                ? ZoomBox.ActualWidth / Canvas.Width
+                : ZoomBox.ActualHeight / Canvas.Height;
 
             UpdateCanvasScale();
         }

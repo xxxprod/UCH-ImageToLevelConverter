@@ -51,9 +51,9 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
 
-            <Label Content="Path to Image File:" Margin="3"/>
+            <Label Content="Path to File:" Margin="3"/>
             <TextBox Grid.Column="1" Text="{Binding ImageFileName.Value}" Style="{DynamicResource TextBoxStyle}"/>
-            <Button Grid.Column="2" Content="Search Image" Style="{DynamicResource ButtonStyle}" Command="{Binding SelectImageToConvertCommand}"/>
+            <Button Grid.Column="2" Content="Open" Style="{DynamicResource ButtonStyle}" Command="{Binding OpenFileCommand}" MinWidth="82"/>
         </Grid>
 
         <GridSplitter Grid.Column="0" Grid.ColumnSpan="4" Grid.Row="1" HorizontalAlignment="Stretch" Height="5" IsEnabled="False" />

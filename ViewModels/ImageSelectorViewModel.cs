@@ -12,7 +12,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 {
     public ImageSelectorViewModel()
     {
-        SelectImageToConvertCommand = new DelegateCommand(_ => SelectImageToConvert());
+        OpenFileCommand = new DelegateCommand(_ => OpenFile());
         NavigateToLevelEditorCommand = new DelegateCommand(_ => { });
         PixelGridActionCommand = new DelegateCommand(_ => throw new NotImplementedException());
 
@@ -22,7 +22,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
         Blocks = new BlockDataCollection(Width, Height);
     }
 
-    public DelegateCommand SelectImageToConvertCommand { get; }
+    public DelegateCommand OpenFileCommand { get; }
     public DelegateCommand NavigateToLevelEditorCommand { get; }
     public DelegateCommand PixelGridActionCommand { get; }
 
@@ -32,17 +32,16 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> EditorEnabled { get; } = new();
     public BlockDataCollection Blocks { get; private set; }
     public IntProperty LevelFullness { get; } = new();
-    
+
     public event Action BlocksChanged;
     public IntProperty Width { get; } = new(70, 0, 150);
     public IntProperty Height { get; } = new(50, 0, 150);
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);
 
 
-    private void SelectImageToConvert()
+    private void OpenFile()
     {
         var openFileDialog = new OpenFileDialog();
-
         if (openFileDialog.ShowDialog() == true)
         {
             ImageFileName.Value = openFileDialog.FileName;
@@ -74,8 +73,8 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void UpdateLevelFullness()
     {
-        LevelFullness.Value = Blocks.Count(a => a.Color.Value != new Color()) * 5 + 10; // Add 10 for Start and Goal
+        LevelFullness.Value = Blocks.Count(a => a.Color.Value != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
     }
-    
+
     public void StartRecordingGridActions() => throw new NotImplementedException();
 }

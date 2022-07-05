@@ -5,17 +5,19 @@ namespace UCH_ImageToLevelConverter.Model;
 
 public class BlockData
 {
-    public BlockData(int row, int col, Color color = default) : this(row, col, 1, 1, color)
+    public static readonly Color EmptyColor = System.Windows.Media.Color.FromArgb(20, 255, 255, 255);
+
+    public BlockData(int row, int col, Color? color = default) : this(row, col, 1, 1, color ?? EmptyColor)
     {
     }
 
-    public BlockData(int row, int col, int width, int height, Color color = default)
+    public BlockData(int row, int col, int width, int height, Color? color = default)
     {
         Left = col;
         Right = col + width - 1;
         Top = row;
         Bottom = row + height - 1;
-        Color.Value = color;
+        Color.Value = color ?? EmptyColor;
     }
 
     public BlockData(BlockData block)

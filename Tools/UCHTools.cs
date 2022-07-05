@@ -13,7 +13,7 @@ public static class UCHTools
     public static string CreateSnapshotXml(this BlockDataCollection blocks)
     {
         var activeBlocks = blocks
-            .Where(a => a.Color.Value != new Color())
+            .Where(a => a.Color.Value != BlockData.EmptyColor)
             .ToArray();
 
         var blockXmls = activeBlocks.Select<BlockData, object>((block, idx) => CreateBlockXml(blocks.Width, blocks.Height, block, idx)).ToArray();

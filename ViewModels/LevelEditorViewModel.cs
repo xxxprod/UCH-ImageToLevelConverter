@@ -14,7 +14,6 @@ namespace UCH_ImageToLevelConverter.ViewModels;
 public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 {
     private const string SnapshotsDirectory = "snapshots";
-    public readonly Color EmptyColor = new();
     private BlockDataCollection _blocks;
 
     private readonly Stack<BlockData[]> _undoHistory = new();
@@ -88,7 +87,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<bool> CanUndo { get; } = new(false);
     public Property<bool> CanRedo { get; } = new(false);
-    
+
     public Property<bool> ColorPickingEnabled { get; } = new();
     public Property<bool> PixelEraserEnabled { get; } = new();
     public Property<bool> MagicEraserEnabled { get; } = new();
@@ -120,13 +119,19 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public void StartRecordingGridActions()
     {
+        if (ColorPickingEnabled)
+            return;
         PushUndoData(Blocks.CopyBlocks());
     }
 
     private void OnPixelGridAction(BlockData blockData)
     {
         if (PixelEraserEnabled || MagicEraserEnabled) ErasePixel(blockData);
-        else if (ColorPickingEnabled) SelectedColor.Value = blockData.Color;
+        else if (ColorPickingEnabled)
+        {
+            if (blockData.Color != BlockData.EmptyColor)
+                SelectedColor.Value = blockData.Color;
+        }
         else if (PaintBrushEnabled) blockData.Color.Value = SelectedColor.Value;
         else if (OptimizerEnabled) OptimizeSection(blockData);
 
@@ -139,6 +144,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         PushUndoData(Blocks.CopyBlocks());
 
         var blocksByColor = Blocks
+            .Where(a => a.Color != BlockData.EmptyColor)
             .GroupBy(a => a.Color)
             .ToDictionary(
                 a => a.Key,
@@ -250,7 +256,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         foreach (var foundBlock in FindBlocksWithSameColor(block, block.Color))
         {
-            foundBlock.Color.Value = EmptyColor;
+            foundBlock.Color.Value = BlockData.EmptyColor;
 
             if (!MagicEraserEnabled)
                 break;
@@ -259,7 +265,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private IEnumerable<BlockData> FindBlocksWithSameColor(BlockData startBlock, Color color)
     {
-        if (color == EmptyColor)
+        if (color == BlockData.EmptyColor)
             yield break;
 
         var queue = new Queue<BlockData>();
@@ -326,7 +332,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void UpdateLevelFullness()
     {
-        LevelFullness.Value = Blocks.Count(a => a.Color.Value != new Color()) * 5 + 10; // Add 10 for Start and Goal
+        LevelFullness.Value = Blocks.Count(a => a.Color.Value != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
     }
 
     private void PushUndoData(IEnumerable<BlockData> undoData)
