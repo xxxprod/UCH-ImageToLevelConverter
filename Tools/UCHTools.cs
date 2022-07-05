@@ -18,10 +18,10 @@ public static class UCHTools
 
         var blockXmls = activeBlocks.Select<BlockData, object>((block, idx) => CreateBlockXml(blocks.Width, blocks.Height, block, idx)).ToArray();
 
-        var minX = activeBlocks.Min(a => a.Left);
-        var maxX = activeBlocks.Max(a => a.Right);
-        var minY = activeBlocks.Min(a => a.Top);
-        var maxY = activeBlocks.Max(a => a.Bottom);
+        var minX = activeBlocks.Any() ? activeBlocks.Min(a => a.Left) : 0;
+        var maxX = activeBlocks.Any() ? activeBlocks.Max(a => a.Right) : 0;
+        var minY = activeBlocks.Any() ? activeBlocks.Min(a => a.Top) : 0;
+        var maxY = activeBlocks.Any() ? activeBlocks.Max(a => a.Bottom) : 0;
 
 
         var standardElements = new[]
