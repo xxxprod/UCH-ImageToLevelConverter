@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Xml.Linq;
+using Newtonsoft.Json;
 using UCH_ImageToLevelConverter.Model;
 
 namespace UCH_ImageToLevelConverter.Tools;
@@ -195,9 +197,10 @@ public static class UCHTools
                     $"Block with Height {block.Height} and Width {block.Width} is not supported");
         }
 
-        return new XElement("block",
+        var attributes = new List<object>
+        {
             new XAttribute("sceneID", index),
-            new XAttribute("blockID", blockId),
+            new XAttribute("blockID", block.Layer.Value == Layer.Normal ?blockId:9000+blockId),
             new XAttribute("pX", x),
             new XAttribute("pY", y),
             new XAttribute("rZ", rot),
@@ -205,6 +208,44 @@ public static class UCHTools
             new XAttribute("colR", block.Color.Value.R / 512.0f),
             new XAttribute("colG", block.Color.Value.G / 512.0f),
             new XAttribute("colB", block.Color.Value.B / 512.0f)
-        );
+        };
+
+        if (block.Layer.Value != Layer.Normal)
+        {
+            var jsonString = new ModBlockInfo(block.Layer, 1).ToJsonString();
+            var xAttribute = new XAttribute("overrideName", jsonString);
+            attributes.Add(xAttribute);
+        }
+
+        return new XElement("block", attributes);
+    }
+
+    public class ModBlockInfo
+    {
+        public const string ModBlockTag = "[ModBlock]";
+        public const string StartMarker = "mbi::";
+        public const string EndMarker = "::mbi";
+
+        public ModBlockInfo(Layer layer, double alpha)
+        {
+            Layer = layer switch
+            {
+                Model.Layer.Background => "Main Background",
+                Model.Layer.Foreground => "Effects",
+                _ => throw new NotSupportedException($"Layer '{layer}' not supported")
+            };
+            Alpha = alpha;
+        }
+
+        [JsonProperty("layer")]
+        public string Layer { get; }
+
+        [JsonProperty("alpha")]
+        public double Alpha { get; }
+
+        public string ToJsonString()
+        {
+            return $"{ModBlockTag} {StartMarker}{JsonConvert.SerializeObject(this)}{EndMarker}";
+        }
     }
 }
