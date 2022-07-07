@@ -15,5 +15,6 @@ Some of the implemented features are:
 - Erase whole regions of same color (Color Reduction helps here)
 - Optimize or Break a region (click into any region and all surrounding blocks with same color get optimized)
 - Optimize or Break whole Level
+- Support for Layers (requires [UCH-BackgroundBlocks](https://github.com/batram/UCH-BackgroundBlocks) mod installed)
 - Zoom grid with Ctrl & mouse wheel
 - Pan zoomed grid with middle mouse button
