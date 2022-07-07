@@ -3,10 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Markup;
-using UCH_ImageToLevelConverter.ViewModels;
 
-namespace UCH_ImageToLevelConverter;
+namespace UCH_ImageToLevelConverter.Tools;
 
 public class ContentViewSelector : DataTemplateSelector
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Globalization;
-using System.Linq;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
 using System.Windows.Input;
@@ -171,33 +168,6 @@ namespace UCH_ImageToLevelConverter.Views
         {
             var scale = _sizeScale * _zoomScale;
             Canvas.LayoutTransform = new ScaleTransform(scale, scale);
-        }
-    }
-
-    public class LayerOpacityConverter : IMultiValueConverter
-    {
-        public object Convert(object[] values, Type targetType, object parameter, CultureInfo culture)
-        {
-            if (values.Any(v => v == DependencyProperty.UnsetValue))
-                return 1;
-
-            var highlightLayer = (bool)values[0];
-            var highlightedLayer = (LayerViewModel)values[1];
-            var allLayers = (LayerViewModel[])values[2];
-            var blockLayer = (Layer)values[3];
-
-            if (!allLayers[(int) blockLayer].IsVisible)
-                return 0.0;
-
-            if (!highlightLayer || blockLayer == highlightedLayer.Layer)
-                return 1.0;
-
-            return 0.2;
-        }
-
-        public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
-        {
-            throw new NotImplementedException();
         }
     }
 }

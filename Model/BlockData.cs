@@ -27,6 +27,7 @@ public class BlockData
         Right = block.Right;
         Top = block.Top;
         Bottom = block.Bottom;
+        Layer.Value = block.Layer;
         Color.Value = block.Color;
     }
 
