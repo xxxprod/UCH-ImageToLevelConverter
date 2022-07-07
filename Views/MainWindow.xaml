@@ -7,7 +7,7 @@
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
         xmlns:tools="clr-namespace:UCH_ImageToLevelConverter"
         mc:Ignorable="d"
-        Title="Ultimate Chicken Horse Level Designer" Height="650" Width="1000"
+        Title="Ultimate Chicken Horse Level Designer" Height="750" Width="1100"
         Icon="../Icons/UCH_32x32.png">
     <ContentControl Content="{Binding}">
         <ContentControl.ContentTemplateSelector>

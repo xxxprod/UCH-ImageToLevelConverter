@@ -146,6 +146,13 @@
                         </CheckBox.Content>
                     </CheckBox>
 
+                    <Label Content="Move Region to Layer" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding MoveRegionToLayerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
                     <Label Content="Highlight Layer" FontWeight="Bold" />
                     <CheckBox IsChecked="{Binding HighlightLayer.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>

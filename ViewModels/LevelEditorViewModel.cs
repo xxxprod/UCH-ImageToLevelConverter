@@ -21,7 +21,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public LevelEditorViewModel()
     {
-        PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData)o));
+        PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData) o));
         UndoCommand = new DelegateCommand(o => UndoAction());
         RedoCommand = new DelegateCommand(o => RedoAction());
         OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
@@ -38,7 +38,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             FillBrushEnabled,
             OptimizerEnabled,
             BreakBlocksEnabled,
-            MoveToLayerEnabled
+            MoveToLayerEnabled,
+            MoveRegionToLayerEnabled
         };
 
         foreach (var pixelGridAction in pixelGridActions)
@@ -56,29 +57,21 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             };
         }
 
-        Layers = new[]
-        {
-            new LayerViewModel(Layer.Background, false),
-            new LayerViewModel(Layer.Normal, true),
-            new LayerViewModel(Layer.Foreground, false)
-        };
+        Layers = Enum.GetValues<Layer>().Select(l => new LayerViewModel(l, true)).ToArray();
 
-        foreach (LayerViewModel layer in Layers)
+        foreach (var layer in Layers)
             layer.IsVisible.OnChanged += _ => OnLayerVisibilityChanged(layer);
 
         HighlightedLayer.OnChanged += OnHighlightedLayerChanged;
-        MoveToLayerEnabled.OnChanged += moveToLayerEnabled =>
-        {
-            if (moveToLayerEnabled)
-            {
-                HighlightedLayer.Value ??= Layers[1];
-                HighlightLayer.Value = true;
-            }
-        };
+        MoveToLayerEnabled.OnChanged += MoveToLayerChanged;
+        MoveRegionToLayerEnabled.OnChanged += MoveToLayerChanged;
         HighlightLayer.OnChanged += highlight =>
         {
             if (!highlight)
+            {
                 MoveToLayerEnabled.Value = false;
+                MoveRegionToLayerEnabled.Value = false;
+            }
         };
         HighlightedLayer.Value = Layers[1];
     }
@@ -103,6 +96,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> OptimizerEnabled { get; } = new();
     public Property<bool> BreakBlocksEnabled { get; } = new();
     public Property<bool> MoveToLayerEnabled { get; } = new();
+    public Property<bool> MoveRegionToLayerEnabled { get; } = new();
 
     public Property<Color> SelectedPaintColor { get; } = new(Colors.Black);
 
@@ -132,6 +126,22 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<bool> EditorEnabled { get; } = new();
 
+    public void StartRecordingGridActions()
+    {
+        if (ColorPickingEnabled)
+            return;
+        PushUndoData(Blocks.CopyBlocks());
+    }
+
+    private void MoveToLayerChanged(bool moveToLayerEnabled)
+    {
+        if (moveToLayerEnabled)
+        {
+            HighlightedLayer.Value ??= Layers[1];
+            HighlightLayer.Value = true;
+        }
+    }
+
 
     private void OnLayerVisibilityChanged(LayerViewModel layer)
     {
@@ -140,28 +150,20 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             HighlightedLayer.Value = Layers.FirstOrDefault(a => a.IsVisible) ?? Layers[1];
             HighlightedLayer.Value.IsVisible.Value = true;
         }
+
         OnPropertyChanged(nameof(Layers));
     }
 
     private void OnHighlightedLayerChanged(LayerViewModel layer)
     {
         if (layer == null || !layer.IsVisible.Value)
-        {
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 layer ??= Layers[1];
                 layer.IsVisible.Value = true;
                 HighlightedLayer.Value = layer;
             }));
-        }
         OnPropertyChanged(nameof(Layers));
-    }
-
-    public void StartRecordingGridActions()
-    {
-        if (ColorPickingEnabled)
-            return;
-        PushUndoData(Blocks.CopyBlocks());
     }
 
     private void RedoAction()
@@ -227,6 +229,11 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         else if (MoveToLayerEnabled)
         {
             blockData.Layer.Value = HighlightedLayer.Value.Layer;
+        }
+        else if (MoveRegionToLayerEnabled)
+        {
+            foreach (var block in FindBlocksWithSameColor(blockData, blockData.Color))
+                block.Layer.Value = HighlightedLayer.Value.Layer;
         }
 
         UpdateLevelFullness();
@@ -330,17 +337,17 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         {
             var nextBlock = blocksToOptimize[ran.Next(blocksToOptimize.Count)];
 
-            foreach ((var blockWidth, var blockHeight) in blockSizes)
+            foreach (var (blockWidth, blockHeight) in blockSizes)
             {
                 var foundHole = false;
                 for (var deltaRow = 0; deltaRow < blockHeight && !foundHole; deltaRow++)
-                    for (var deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
-                    {
-                        var row = nextBlock.Top + deltaRow - minRow;
-                        var col = nextBlock.Left + deltaCol - minCol;
-                        if (row >= height || col >= width || blockGrid[row, col] == null)
-                            foundHole = true;
-                    }
+                for (var deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
+                {
+                    var row = nextBlock.Top + deltaRow - minRow;
+                    var col = nextBlock.Left + deltaCol - minCol;
+                    if (row >= height || col >= width || blockGrid[row, col] == null)
+                        foundHole = true;
+                }
 
                 if (!foundHole)
                 {
@@ -349,13 +356,13 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                         nextBlock.Layer, nextBlock.Color));
 
                     for (var deltaRow = 0; deltaRow < blockHeight; deltaRow++)
-                        for (var deltaCol = 0; deltaCol < blockWidth; deltaCol++)
-                        {
-                            var row = nextBlock.Top + deltaRow - minRow;
-                            var col = nextBlock.Left + deltaCol - minCol;
-                            blocksToOptimize.Remove(blockGrid[row, col]);
-                            blockGrid[row, col] = null;
-                        }
+                    for (var deltaCol = 0; deltaCol < blockWidth; deltaCol++)
+                    {
+                        var row = nextBlock.Top + deltaRow - minRow;
+                        var col = nextBlock.Left + deltaCol - minCol;
+                        blocksToOptimize.Remove(blockGrid[row, col]);
+                        blockGrid[row, col] = null;
+                    }
 
                     break;
                 }
@@ -455,7 +462,10 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void UpdateLevelFullness()
     {
-        LevelFullness.Value = Blocks == null ? 0 : Blocks.Count(a => a.Color.Value != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
+        LevelFullness.Value =
+            Blocks == null
+                ? 0
+                : Blocks.Count(a => a.Color.Value != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
     }
 
     private void PushUndoData(IEnumerable<BlockData> undoData)
