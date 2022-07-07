@@ -7,17 +7,18 @@ public class BlockData
 {
     public static readonly Color EmptyColor = System.Windows.Media.Color.FromArgb(20, 255, 255, 255);
 
-    public BlockData(int row, int col, Color? color = default) : this(row, col, 1, 1, color ?? EmptyColor)
+    public BlockData(int row, int col, Layer layer, Color? color = default) : this(row, col, 1, 1, layer, color ?? EmptyColor)
     {
     }
 
-    public BlockData(int row, int col, int width, int height, Color? color = default)
+    public BlockData(int row, int col, int width, int height, Layer layer, Color? color = default)
     {
         Left = col;
         Right = col + width - 1;
         Top = row;
         Bottom = row + height - 1;
         Color.Value = color ?? EmptyColor;
+        Layer.Value = layer;
     }
 
     public BlockData(BlockData block)
@@ -39,4 +40,5 @@ public class BlockData
     public int Cells => Height * Width;
 
     public Property<Color> Color { get; } = new();
+    public Property<Layer> Layer { get; } = new();
 }

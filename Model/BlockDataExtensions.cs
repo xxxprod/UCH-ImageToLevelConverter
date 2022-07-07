@@ -20,7 +20,7 @@ public static class BlockDataExtensions
             {
                 for (int col = block.Left; col <= block.Right; col++)
                 {
-                    yield return new BlockData(row, col, block.Color);
+                    yield return new BlockData(row, col, block.Layer, block.Color);
                 }
             }
         }

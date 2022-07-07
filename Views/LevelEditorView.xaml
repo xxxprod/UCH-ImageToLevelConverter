@@ -6,6 +6,7 @@
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
         xmlns:pt="http://propertytools.org/wpf"
         xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
+        xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
         mc:Ignorable="d"
         d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}">
 
@@ -66,7 +67,7 @@
 
                 </UniformGrid>
 
-                <pt:ColorPicker SelectedColor="{Binding SelectedColor.Value}" />
+                <pt:ColorPicker SelectedColor="{Binding SelectedPaintColor.Value}" />
 
                 <UniformGrid Columns="2" VerticalAlignment="Top">
 
@@ -131,6 +132,31 @@
 
                 </UniformGrid>
                 <Button Content="Break All into Cells" Command="{Binding BreakAllCommand}"/>
+
+
+                <UniformGrid Columns="2" VerticalAlignment="Top">
+
+                    <Label />
+                    <Label />
+
+                    <Label Content="Move to Layer" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding MoveToLayerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
+                    <Label Content="Highlight Layer" FontWeight="Bold" />
+                    <CheckBox IsChecked="{Binding HighlightLayer.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <CheckBox.Content>
+                            <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                        </CheckBox.Content>
+                    </CheckBox>
+
+                </UniformGrid>
+
+                <views:LayerView LayerData="{Binding Layers}" />
+
             </StackPanel>
         </ScrollViewer>
 
@@ -139,6 +165,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
+
             <ToolBar ToolBarTray.IsLocked="True">
                 <Button Name="UndoButton" ToolTip="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo.Value}">
                     <Button.Style>

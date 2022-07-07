@@ -17,7 +17,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
         OpenFileCommand = new DelegateCommand(_ => OpenFile());
         NavigateToLevelEditorCommand = new DelegateCommand(_ => { });
         PixelGridActionCommand = new DelegateCommand(_ => throw new NotImplementedException());
-
+        Layers = Enum.GetValues<Layer>().Select(l => new LayerViewModel(l, true)).ToArray();
         RegisterPropertyChangedCallback(UpdatePreview,
             ImageFileName, Width, Height, MaxColors);
         UpdatePreview();
@@ -31,6 +31,9 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     public Property<string> ImageFileName { get; } = new();
     public Property<bool> EditorEnabled { get; } = new();
+    public Property<bool> HighlightLayer { get; } = new();
+    public Property<LayerViewModel> HighlightedLayer { get; } = new();
+    public LayerViewModel[] Layers { get; }
     public BlockDataCollection Blocks { get; private set; }
     public IntProperty LevelFullness { get; } = new();
 

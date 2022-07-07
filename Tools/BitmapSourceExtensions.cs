@@ -51,7 +51,7 @@ public static class BitmapSourceExtensions
             {
                 var color = Color.FromRgb(sourcePixels[idx + 0], sourcePixels[idx + 1], sourcePixels[idx + 2]);
 
-                yield return new BlockData(row, col, color);
+                yield return new BlockData(row, col, Layer.Normal, color);
             }
         }
     }

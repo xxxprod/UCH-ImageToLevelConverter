@@ -1,0 +1,51 @@
+﻿<UserControl x:Class="UCH_ImageToLevelConverter.Views.LayerView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
+             xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}">
+    <Grid Grid.IsSharedSizeScope="True">
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" SharedSizeGroup="VisibilityColumn" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+        
+        <Label Grid.Row="0" Grid.Column="0" Content="Layer" Margin="6,0,0,0" FontWeight="Bold"/>
+        <Label Grid.Row="0" Grid.Column="1" Content="Visible" Margin="-10,0,0,0" FontWeight="Bold"/>
+
+        <ScrollViewer Name="DummyScrollBar" Grid.Row="0" Grid.Column="2" Height="0"/>
+
+        <ListBox Name="LayerList" Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="3"
+                 ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=views:LayerView}, Path=LayerData}"
+                 SelectedItem="{Binding HighlightedLayer.Value}">
+
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                </Style>
+            </ListBox.ItemContainerStyle>
+
+            <ListBox.ItemTemplate>
+                <DataTemplate DataType="{x:Type viewModels:LayerViewModel}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition SharedSizeGroup="VisibilityColumn"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Label Content="{Binding Layer}" />
+                        <CheckBox Grid.Column="1" IsChecked="{Binding IsVisible.Value}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </Grid>
+</UserControl>
