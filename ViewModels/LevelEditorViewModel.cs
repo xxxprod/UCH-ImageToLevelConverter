@@ -7,6 +7,7 @@ using System.Text;
 using System.Windows;
 using System.Windows.Media;
 using UCH_ImageToLevelConverter.Model;
+using UCH_ImageToLevelConverter.Optimizer;
 using UCH_ImageToLevelConverter.Tools;
 
 namespace UCH_ImageToLevelConverter.ViewModels;
@@ -212,7 +213,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         }
         else if (FillBrushEnabled)
         {
-            foreach (var block in FindBlocksWithSameColor(blockData, blockData.Color))
+            foreach (var block in Blocks.FindBlocksWithSameColor(blockData, blockData.Color))
             {
                 block.Color.Value = SelectedPaintColor.Value;
                 block.Layer.Value = HighlightedLayer.Value.Layer;
@@ -232,7 +233,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         }
         else if (MoveRegionToLayerEnabled)
         {
-            foreach (var block in FindBlocksWithSameColor(blockData, blockData.Color))
+            foreach (var block in Blocks.FindBlocksWithSameColor(blockData, blockData.Color))
                 block.Layer.Value = HighlightedLayer.Value.Layer;
         }
 
@@ -241,7 +242,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void BreakSection(BlockData blockData)
     {
-        var blocksToOptimize = FindBlocksWithSameColor(blockData, blockData.Color)
+        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
             .Where(a => a.Color != BlockData.EmptyColor)
             .BreakToCells();
 
@@ -282,7 +283,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void OptimizeSection(BlockData block)
     {
-        var blocksToOptimize = FindBlocksWithSameColor(block, block.Color)
+        var blocksToOptimize = Blocks.FindBlocksWithSameColor(block, block.Color)
             .Where(a => a.Color != BlockData.EmptyColor)
             .BreakToCells()
             .ToList();
@@ -305,7 +306,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void ErasePixel(BlockData block)
     {
-        var blocksWithSameColor = FindBlocksWithSameColor(block, block.Color)
+        var blocksWithSameColor = Blocks.FindBlocksWithSameColor(block, block.Color)
             .Where(a => a.Color != BlockData.EmptyColor);
         if (!MagicEraserEnabled)
             blocksWithSameColor = blocksWithSameColor.Take(1);
@@ -324,32 +325,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
         if (brokenCellsCount > 0)
             OnBlocksChanged();
-    }
-
-    private IEnumerable<BlockData> FindBlocksWithSameColor(BlockData startBlock, Color color)
-    {
-        var queue = new Queue<BlockData>();
-        var done = new HashSet<BlockData>();
-        queue.Enqueue(startBlock);
-        done.Add(startBlock);
-
-        while (queue.Any())
-        {
-            var block = queue.Dequeue();
-
-            yield return block;
-
-            var neighborIdx = Blocks.GetNeighborIndices(block);
-
-            foreach (var idx in neighborIdx)
-            {
-                if (idx < 0 || idx >= Blocks.Width * Blocks.Height)
-                    continue;
-                var neighbor = Blocks[idx];
-                if (neighbor.Color == color && done.Add(neighbor))
-                    queue.Enqueue(neighbor);
-            }
-        }
     }
 
     private void SaveLevel()

@@ -41,7 +41,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public event Action BlocksChanged;
     public IntProperty Width { get; } = new(70, 0, 150);
     public IntProperty Height { get; } = new(50, 0, 150);
-    public NullableIntProperty MaxColors { get; } = new(15, null, 256);
+    public NullableIntProperty MaxColors { get; } = new(null, null, 256);
 
 
     private void OpenFile()
