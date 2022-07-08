@@ -9,7 +9,7 @@ public abstract class BlockOptimizerBase
     protected readonly int Width;
     protected readonly int Height;
 
-    protected readonly BlockData[,] Blocks;
+    protected readonly BlockData?[,] Blocks;
     protected readonly int ColOffset;
     protected readonly int RowOffset;
 
@@ -23,7 +23,7 @@ public abstract class BlockOptimizerBase
         Width = maxCol - ColOffset + 1;
         Height = maxRow - RowOffset + 1;
 
-        Blocks = new BlockData[Height, Width];
+        Blocks = new BlockData?[Height, Width];
 
         foreach (var blockData in blocks)
         {
@@ -41,7 +41,7 @@ public abstract class BlockOptimizerBase
             {
                 var block = Blocks[row, col];
                 if (block != null)
-                    yield return block;
+                    yield return block.Value;
             }
         }
     }

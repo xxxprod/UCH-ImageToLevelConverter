@@ -2,14 +2,15 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
+using static System.Double;
 
 namespace UCH_ImageToLevelConverter.Model;
 
 public static class BlockDataExtensions
 {
-    public static IEnumerable<BlockData> BreakToCells(this IEnumerable<BlockData> blocks)
+    public static BlockData[] BreakToCells(this IEnumerable<BlockData> blocks)
     {
-        return blocks.ToArray().SelectMany(BreakToCells);
+        return blocks.SelectMany(BreakToCells).ToArray();
     }
 
     private static IEnumerable<BlockData> BreakToCells(this BlockData block)
@@ -28,21 +29,21 @@ public static class BlockDataExtensions
         }
     }
 
-    public static IEnumerable<BlockData> CopyBlocks(this IEnumerable<BlockData> blocks)
-    {
-        foreach (BlockData block in blocks)
-        {
-            yield return new BlockData(block);
-        }
-    }
+    //public static IEnumerable<BlockData> CopyBlocks(this IEnumerable<BlockData> blocks)
+    //{
+    //    foreach (BlockData block in blocks)
+    //    {
+    //        yield return block;
+    //    }
+    //}
 
-    public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock, Color color, double maxDistance = 1)
+    public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock, Color color, double maxDistance = 30)
     {
         var queue = new Queue<BlockData>();
-        var done = new HashSet<BlockData>();
+        var done = new HashSet<(int Top, int Bottom, int Left, int Right)>();
 
         queue.Enqueue(startBlock);
-        done.Add(startBlock);
+        done.Add((startBlock.Top, startBlock.Bottom, startBlock.Left, startBlock.Right));
 
         while (queue.Any())
         {
@@ -57,9 +58,8 @@ public static class BlockDataExtensions
                 if (idx < 0 || idx >= blocks.Width * blocks.Height)
                     continue;
                 var neighbor = blocks[idx];
-                if (!done.Add(neighbor))
+                if (!done.Add((neighbor.Top, neighbor.Bottom, neighbor.Left, neighbor.Right)))
                     continue;
-
 
                 if (GetColorSimilarity(neighbor.Color, color) <= maxDistance)
                     queue.Enqueue(neighbor);
@@ -69,6 +69,9 @@ public static class BlockDataExtensions
 
     private static double GetColorSimilarity(Color a, Color b)
     {
+        if (a == BlockData.EmptyColor ^ b == BlockData.EmptyColor)
+            return PositiveInfinity;
+
         return Math.Sqrt(Math.Pow(a.R - b.R, 2) + Math.Pow(a.G - b.G, 2) + Math.Pow(a.B - b.B, 2));
     }
 }

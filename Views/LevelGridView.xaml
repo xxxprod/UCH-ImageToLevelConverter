@@ -4,10 +4,11 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
+             xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800"
-             DataContextChanged="OnDataContextChanged"
-             SizeChanged="OnSizeChanged" d:DataContext="{d:DesignInstance viewModels:IPixelGridViewModel}">
+             d:DesignHeight="450" d:DesignWidth="800" 
+             SizeChanged="OnSizeChanged"
+             d:DataContext="{d:DesignInstance viewModels:IPixelGridViewModel}">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -19,11 +20,13 @@
             <Label Content="{Binding LevelFullness.Value}" />
         </StackPanel>
         
-        <ScrollViewer Grid.Row="1" Name="ZoomBox" PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel" 
+        <ScrollViewer Grid.Row="1" Name="ZoomBox" 
+                      PreviewMouseDown="Canvas_OnPreviewMouseDown"
+                      PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel" 
                       Background="DimGray" 
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto">
-            <Canvas Name="Canvas" PreviewMouseDown="Canvas_OnPreviewMouseDown" PreviewMouseMove="Canvas_OnPreviewMouseMove" />
+            <views:BlockGridView x:Name="BlockGridView" PreviewMouseMove="Canvas_OnPreviewMouseMove" />
         </ScrollViewer>
     </Grid>
 </UserControl>

@@ -57,7 +57,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                         otherAction.Value = false;
             };
         }
-        
+
         Layers = Enum.GetValues<Layer>().OrderBy(a => a).ToDictionary(a => a, a => new LayerViewModel(a, true));
 
         foreach (var layer in Layers.Values)
@@ -73,6 +73,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 MoveToLayerEnabled.Value = false;
                 MoveRegionToLayerEnabled.Value = false;
             }
+            OnBlocksChanged(Blocks);
         };
         HighlightedLayer.Value = Layers[Layer.Default];
     }
@@ -115,15 +116,15 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         set
         {
             _blocks = value;
-            OnBlocksChanged();
             _undoHistory.Clear();
             _redoHistory.Clear();
             CanUndo.Value = false;
             CanRedo.Value = false;
+            OnBlocksChanged(value);
         }
     }
 
-    public event Action BlocksChanged;
+    public event Action<IEnumerable<BlockData>> BlocksChanged;
 
     public Property<bool> EditorEnabled { get; } = new();
 
@@ -131,7 +132,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         if (ColorPickingEnabled)
             return;
-        PushUndoData(Blocks.CopyBlocks());
+        PushUndoData(Blocks);
     }
 
     private void MoveToLayerChanged(bool moveToLayerEnabled)
@@ -146,13 +147,13 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void OnLayerVisibilityChanged(LayerViewModel layer)
     {
-        if (HighlightedLayer.Value == layer && !layer.IsVisible)
-        {
-            HighlightedLayer.Value = Layers.Values.FirstOrDefault(a => a.IsVisible) ?? Layers[Layer.Default];
-            HighlightedLayer.Value.IsVisible.Value = true;
-        }
-
-        OnPropertyChanged(nameof(Layers));
+        //if (HighlightedLayer.Value == layer && !layer.IsVisible)
+        //{
+        //    HighlightedLayer.Value = Layers.Values.FirstOrDefault(a => a.IsVisible) ?? Layers[Layer.Default];
+        //    HighlightedLayer.Value.IsVisible.Value = true;
+        //}
+        
+        OnBlocksChanged(Blocks);
     }
 
     private void OnHighlightedLayerChanged(LayerViewModel layer)
@@ -164,167 +165,170 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 layer.IsVisible.Value = true;
                 HighlightedLayer.Value = layer;
             }));
-        OnPropertyChanged(nameof(Layers));
+
+        if (HighlightLayer)
+            OnBlocksChanged(Blocks);
     }
 
     private void RedoAction()
     {
-        _undoHistory.Push(Blocks.CopyBlocks().ToArray());
+        _undoHistory.Push(Blocks.ToArray());
 
         var blockData = _redoHistory.Pop();
 
         foreach (var block in blockData)
-            Blocks.SetBlock(block);
+        {
+            var _ = Blocks.ReplaceBlock(block).ToArray();
+        }
 
         CanUndo.Value = _undoHistory.Any();
         CanRedo.Value = _redoHistory.Any();
-        OnBlocksChanged();
+        OnBlocksChanged(Blocks);
     }
 
     private void UndoAction()
     {
-        _redoHistory.Push(Blocks.CopyBlocks().ToArray());
+        _redoHistory.Push(Blocks.ToArray());
 
         var blockData = _undoHistory.Pop();
 
         foreach (var block in blockData)
-            Blocks.SetBlock(block);
+        {
+            var _ = Blocks.ReplaceBlock(block).ToArray();
+        }
 
         CanUndo.Value = _undoHistory.Any();
         CanRedo.Value = _redoHistory.Any();
-        OnBlocksChanged();
+        OnBlocksChanged(Blocks);
     }
-
-    private void OnPixelGridAction(BlockData blockData)
-    {
-        if (PixelEraserEnabled || MagicEraserEnabled)
-        {
-            ErasePixel(blockData);
-        }
-        else if (ColorPickingEnabled)
-        {
-            if (blockData.Color != BlockData.EmptyColor)
-                SelectedPaintColor.Value = blockData.Color;
-        }
-        else if (PaintBrushEnabled)
-        {
-            blockData.Color.Value = SelectedPaintColor.Value;
-            blockData.Layer.Value = HighlightedLayer.Value.Layer;
-        }
-        else if (FillBrushEnabled)
-        {
-            foreach (var block in Blocks.FindBlocksWithSameColor(blockData, blockData.Color))
-            {
-                block.Color.Value = SelectedPaintColor.Value;
-                block.Layer.Value = HighlightedLayer.Value.Layer;
-            }
-        }
-        else if (OptimizerEnabled)
-        {
-            OptimizeSection(blockData);
-        }
-        else if (BreakBlocksEnabled)
-        {
-            BreakSection(blockData);
-        }
-        else if (MoveToLayerEnabled)
-        {
-            blockData.Layer.Value = HighlightedLayer.Value.Layer;
-        }
-        else if (MoveRegionToLayerEnabled)
-        {
-            foreach (var block in Blocks.FindBlocksWithSameColor(blockData, blockData.Color))
-                block.Layer.Value = HighlightedLayer.Value.Layer;
-        }
-
-        UpdateLevelFullness();
-    }
-
-    private void BreakSection(BlockData blockData)
-    {
-        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
-            .Where(a => a.Color != BlockData.EmptyColor)
-            .BreakToCells();
-
-        foreach (var block in blocksToOptimize)
-            Blocks.SetBlock(block);
-
-        OnBlocksChanged();
-    }
-
 
     private void BreakAll()
     {
-        PushUndoData(Blocks.CopyBlocks());
+        PushUndoData(Blocks);
 
         foreach (var block in Blocks.BreakToCells())
-            Blocks.SetBlock(block);
+        {
+            var _ = Blocks.ReplaceBlock(block).ToArray();
+        }
 
-        OnBlocksChanged();
+        OnBlocksChanged(Blocks);
     }
 
     private void OptimizeAll()
     {
-        PushUndoData(Blocks.CopyBlocks());
+        PushUndoData(Blocks);
 
         var blocksByColor = Blocks
             .Where(a => a.Color != BlockData.EmptyColor)
             .GroupBy(a => a.Color)
             .ToDictionary(
                 a => a.Key,
-                a => a.BreakToCells().ToList()
+                a => a.BreakToCells()
             );
 
-        foreach ((Color _, var blocks) in blocksByColor)
-            OptimizeBlocks(blocks);
+        foreach (var (_, blocks) in blocksByColor)
+        {
+            var _ = OptimizeBlocks(blocks).ToArray();
+        }
 
-        OnBlocksChanged();
+        OnBlocksChanged(Blocks);
     }
 
-    private void OptimizeSection(BlockData block)
+    private void OnPixelGridAction(BlockData blockData)
     {
-        var blocksToOptimize = Blocks.FindBlocksWithSameColor(block, block.Color)
-            .Where(a => a.Color != BlockData.EmptyColor)
-            .BreakToCells()
-            .ToList();
+        IEnumerable<BlockData> changedBlocks = Enumerable.Empty<BlockData>();
 
-        OptimizeBlocks(blocksToOptimize);
+        if (ColorPickingEnabled)
+        {
+            if (blockData.Color == BlockData.EmptyColor)
+                return;
 
-        OnBlocksChanged();
+            SelectedPaintColor.Value = blockData.Color;
+        }
+        else if (PixelEraserEnabled || MagicEraserEnabled)
+            changedBlocks = EraseBlocks(blockData);
+        else if (PaintBrushEnabled || FillBrushEnabled)
+            changedBlocks = PaintBlocks(blockData);
+        else if (OptimizerEnabled)
+            changedBlocks = OptimizeSection(blockData);
+        else if (BreakBlocksEnabled)
+            changedBlocks = BreakSection(blockData);
+        else if (MoveToLayerEnabled || MoveRegionToLayerEnabled)
+            changedBlocks = MoveToLayer(blockData);
+
+        OnBlocksChanged(changedBlocks.ToArray());
     }
 
-    private void OptimizeBlocks(List<BlockData> blocksToOptimize)
+    private IEnumerable<BlockData> BreakSection(BlockData blockData)
+    {
+        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
+            .Where(a => a.Color != BlockData.EmptyColor)
+            .BreakToCells();
+
+        foreach (BlockData block in blocksToOptimize)
+        {
+            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(block))
+                yield return updatedBlock;
+        }
+    }
+
+    private IEnumerable<BlockData> OptimizeSection(BlockData blockData)
+    {
+        if (blockData.Color == BlockData.EmptyColor)
+            return Enumerable.Empty<BlockData>();
+
+        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
+            .BreakToCells();
+
+        return OptimizeBlocks(blocksToOptimize);
+    }
+
+    private IEnumerable<BlockData> OptimizeBlocks(ICollection<BlockData> blocksToOptimize)
     {
         if (blocksToOptimize.Count <= 1)
-            return;
+            yield break;
 
         var optimizer = new RandomBlockOptimizer(blocksToOptimize);
 
-        foreach (var optimizedBlock in optimizer.Optimize())
-            Blocks.SetBlock(optimizedBlock);
+        foreach (BlockData optimizedBlock in optimizer.Optimize())
+        {
+            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(optimizedBlock))
+                yield return updatedBlock;
+        }
     }
 
-    private void ErasePixel(BlockData block)
+    private IEnumerable<BlockData> MoveToLayer(BlockData blockData)
     {
-        var blocksWithSameColor = Blocks.FindBlocksWithSameColor(block, block.Color)
-            .Where(a => a.Color != BlockData.EmptyColor);
-        if (!MagicEraserEnabled)
-            blocksWithSameColor = blocksWithSameColor.Take(1);
+        return UpdateBlocks(blockData, !MoveRegionToLayerEnabled,
+            block => Blocks.Update(block, block.Color, HighlightedLayer.Value.Layer));
+    }
 
-        var brokenCellsCount = 0;
-        foreach (var cell in blocksWithSameColor)
-            if (cell.Cells == 1)
-            {
-                cell.Color.Value = BlockData.EmptyColor;
-            }
-            else
-            {
-                Blocks.SetBlock(new BlockData(cell.Top, cell.Left, cell.Layer));
-                brokenCellsCount++;
-            }
+    private IEnumerable<BlockData> PaintBlocks(BlockData blockData)
+    {
+        return UpdateBlocks(blockData, !FillBrushEnabled,
+            block => Blocks.Update(block, SelectedPaintColor, HighlightedLayer.Value.Layer));
+    }
 
-        if (brokenCellsCount > 0)
-            OnBlocksChanged();
+    private IEnumerable<BlockData> EraseBlocks(BlockData blockData)
+    {
+        if (blockData.Color == BlockData.EmptyColor)
+            return Enumerable.Empty<BlockData>();
+
+        return UpdateBlocks(blockData, !MagicEraserEnabled, block => Blocks.ClearBlock(block));
+    }
+
+    private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock, Func<BlockData, IEnumerable<BlockData>> updateBlock)
+    {
+        var blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color);
+
+        foreach (var block in blocksWithSameColor)
+        {
+            foreach (var updated in updateBlock(block))
+                yield return updated;
+
+            if (onlyFirstBlock)
+                yield break;
+        }
     }
 
     private void SaveLevel()
@@ -359,18 +363,17 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         }
     }
 
-    protected virtual void OnBlocksChanged()
+    protected virtual void OnBlocksChanged(IEnumerable<BlockData> changedBlocks)
     {
-        BlocksChanged?.Invoke();
+        BlocksChanged?.Invoke(changedBlocks);
         UpdateLevelFullness();
     }
 
     private void UpdateLevelFullness()
     {
-        LevelFullness.Value =
-            Blocks == null
-                ? 0
-                : Blocks.Count(a => a.Color.Value != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
+        LevelFullness.Value = Blocks == null
+            ? 0
+            : Blocks.Count(a => a.Color != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
     }
 
     private void PushUndoData(IEnumerable<BlockData> undoData)

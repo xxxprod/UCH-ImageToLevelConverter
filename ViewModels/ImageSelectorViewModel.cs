@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
@@ -38,9 +36,9 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public BlockDataCollection Blocks { get; private set; }
     public IntProperty LevelFullness { get; } = new();
 
-    public event Action BlocksChanged;
-    public IntProperty Width { get; } = new(70, 0, 150);
-    public IntProperty Height { get; } = new(50, 0, 150);
+    public event Action<IEnumerable<BlockData>> BlocksChanged;
+    public IntProperty Width { get; } = new(100, 0, 150);
+    public IntProperty Height { get; } = new(100, 0, 150);
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);
 
 
@@ -68,7 +66,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
             if (MaxColors.Value.HasValue)
                 bitmapSource = bitmapSource.KNNReduceColors(MaxColors.Value.Value);
 
-            Blocks = new BlockDataCollection(Width, Height, bitmapSource.GetPixelData());
+            Blocks = new BlockDataCollection(Width, Height, bitmapSource.GetColorData().ToArray());
         }
 
         OnBlocksChanged();
@@ -76,13 +74,13 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     protected virtual void OnBlocksChanged()
     {
-        BlocksChanged?.Invoke();
+        BlocksChanged?.Invoke(Blocks);
         UpdateLevelFullness();
     }
 
     private void UpdateLevelFullness()
     {
-        LevelFullness.Value = Blocks.Count(a => a.Color.Value != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
+        LevelFullness.Value = Blocks.Count(a => a.Color != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
     }
 
     public void StartRecordingGridActions() => throw new NotImplementedException();

@@ -37,7 +37,7 @@ public static class BitmapSourceExtensions
         ));
     }
 
-    public static IEnumerable<BlockData> GetPixelData(this BitmapSource bitmap)
+    public static IEnumerable<Color> GetColorData(this BitmapSource bitmap)
     {
         int sourceBytesPerPixel = bitmap.Format.BitsPerPixel / 8;
         var pixelCount = bitmap.PixelHeight * bitmap.PixelWidth;
@@ -49,9 +49,7 @@ public static class BitmapSourceExtensions
         {
             for (int col = 0; col < bitmap.PixelWidth; col++, idx += sourceBytesPerPixel)
             {
-                var color = Color.FromRgb(sourcePixels[idx + 0], sourcePixels[idx + 1], sourcePixels[idx + 2]);
-
-                yield return new BlockData(row, col, Layer.Default, color);
+                yield return Color.FromRgb(sourcePixels[idx + 0], sourcePixels[idx + 1], sourcePixels[idx + 2]);
             }
         }
     }
@@ -63,15 +61,15 @@ public static class BitmapSourceExtensions
         var pixels = new PixelEntry[bitmap.PixelWidth * bitmap.PixelHeight];
 
         int i = 0;
-        foreach (BlockData pixelData in bitmap.GetPixelData())
+        foreach (Color pixelData in bitmap.GetColorData())
         {
             pixels[i++] = new PixelEntry
             {
                 Features = new[]
                 {
-                    pixelData.Color.Value.R / 255.0f,
-                    pixelData.Color.Value.G / 255.0f,
-                    pixelData.Color.Value.B / 255.0f
+                    pixelData.R / 255.0f,
+                    pixelData.G / 255.0f,
+                    pixelData.B / 255.0f
                 }
             };
         }

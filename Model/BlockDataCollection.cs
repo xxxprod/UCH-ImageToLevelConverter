@@ -2,107 +2,75 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Windows.Media;
+using UCH_ImageToLevelConverter.Tools;
 
 namespace UCH_ImageToLevelConverter.Model;
 
 public class BlockDataCollection : IEnumerable<BlockData>
 {
-    private readonly int[] _blockRefs;
-    private readonly List<BlockData> _blocks;
+    private readonly BlockData[,] _blocks;
+
+    public int Width { get; }
+    public int Height { get; }
+    public int Count => Width * Height;
 
     public BlockDataCollection(int width, int height)
     {
         Width = width;
         Height = height;
-        _blockRefs = new int[Width * Height];
-        for (int i = 0; i < _blockRefs.Length; i++) _blockRefs[i] = i;
-        _blocks = new List<BlockData>();
+
+        _blocks = new BlockData[Height, Width];
+
         for (int row = 0; row < Height; row++)
         {
             for (int col = 0; col < Width; col++)
             {
-                _blocks.Add(new BlockData(row, col, Layer.Default));
+                _blocks[row, col] = new BlockData(row, col, Layer.Default);
             }
         }
     }
 
-    public BlockDataCollection(int width, int height, IEnumerable<BlockData> blocks)
+    public BlockDataCollection(int width, int height, IList<Color> colors)
     {
         Width = width;
         Height = height;
-        _blockRefs = new int[Width * Height];
-        for (int i = 0; i < _blockRefs.Length; i++) _blockRefs[i] = i;
-        _blocks = blocks.ToList();
-    }
 
-    public int Width { get; }
-    public int Height { get; }
+        if (colors.Count != Width * Height)
+            throw new ArgumentException($"Passed colors must match Width*Height={Width * Height} but was {colors.Count}");
 
-    public BlockData this[int idx]
-    {
-        get
+        _blocks = new BlockData[Height, Width];
+
+        for (int row = 0; row < Height; row++)
         {
-            var blockRef = _blockRefs[idx];
-            return _blocks[blockRef];
-        }
-    }
-
-    public void SetBlock(BlockData block)
-    {
-        var cellIdx = GetCellIndices(block).ToArray();
-        var blockRefs = cellIdx
-            .Select(i => _blockRefs[i])
-            .Distinct()
-            .ToArray();
-        var placedBlocks = blockRefs
-            .Select(r => _blocks[r])
-            .ToArray();
-
-        foreach (var placedBlock in placedBlocks)
-            RemoveBlock(placedBlock);
-
-        _blocks.Add(block);
-
-        foreach (var idx in cellIdx)
-            _blockRefs[idx] = _blocks.Count - 1;
-
-        for (int i = 0; i < _blockRefs.Length; i++)
-        {
-            if (_blockRefs[i] == -1)
+            for (int col = 0; col < Width; col++)
             {
-                int row = i / Width;
-                int col = i % Width;
-
-                _blocks.Add(new BlockData(row, col, Layer.Default));
-                _blockRefs[i] = _blocks.Count - 1;
+                _blocks[row, col] = new BlockData(row, col, Layer.Default, colors[GetIndex(row, col)]);
             }
         }
     }
 
-    private void RemoveBlock(BlockData block)
+    public BlockData this[int idx] => _blocks[idx / Width, idx % Width];
+    public BlockData this[int row, int col] => _blocks[row, col];
+
+    public IEnumerable<BlockData> ReplaceBlock(BlockData block)
     {
-        var cellIdx = GetCellIndices(block).ToArray();
-        foreach (var idx in cellIdx)
-            _blockRefs[idx] = -1;
-
-        var blockRef = _blocks.IndexOf(block);
-
-        for (int i = 0; i < _blockRefs.Length; i++)
+        for (var row = block.Top; row <= block.Bottom; row++)
         {
-            if (_blockRefs[i] > blockRef)
-                _blockRefs[i]--;
+            for (int col = block.Left; col <= block.Right; col++)
+            {
+                yield return _blocks[row, col] = new BlockData(row, col, block.Top, block.Bottom, block.Left, block.Right, block.Layer, block.Color);
+            }
         }
-
-        _blocks.Remove(block);
     }
 
-    private IEnumerable<int> GetCellIndices(BlockData block)
+    private IEnumerable<BlockData> GetCells(BlockData block)
     {
-        for (var row = 0; row < block.Height; row++)
+        for (var row = block.Top; row <= block.Bottom; row++)
         {
-            for (int col = 0; col < block.Width; col++)
+            for (int col = block.Left; col <= block.Right; col++)
             {
-                yield return GetIndex(block.Top + row, block.Left + col);
+                yield return _blocks[row, col];
             }
         }
     }
@@ -131,57 +99,50 @@ public class BlockDataCollection : IEnumerable<BlockData>
         return row * Width + col;
     }
 
-    public IEnumerator<BlockData> GetEnumerator()
-    {
-        return new BlockEnumerator(this);
-    }
+    public IEnumerator<BlockData> GetEnumerator() => new BlockEnumerator(this);
 
-    IEnumerator IEnumerable.GetEnumerator()
-    {
-        return GetEnumerator();
-    }
+    IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     private class BlockEnumerator : IEnumerator<BlockData>
     {
-        private readonly BlockDataCollection _owner;
+        private BlockDataCollection _owner;
         private int _index = -1;
-        private readonly bool[] _visitedRefs;
 
-        public BlockEnumerator(BlockDataCollection owner)
-        {
-            _owner = owner;
-            _visitedRefs = new bool[_owner._blocks.Count];
-        }
+        public BlockEnumerator(BlockDataCollection owner) => _owner = owner;
 
         public bool MoveNext()
         {
             while (true)
             {
-                if (_index == _owner._blockRefs.Length - 1)
+                if (_index == _owner.Count - 1)
                     return false;
 
                 _index++;
-
-                var blockRef = _owner._blockRefs[_index];
-                if (_visitedRefs[blockRef])
-                    continue;
-                _visitedRefs[blockRef] = true;
 
                 return true;
             }
         }
 
-        public void Reset()
-        {
-            throw new NotImplementedException();
-        }
+        public void Reset() => _index = -1;
 
         public BlockData Current => _owner[_index];
 
         object IEnumerator.Current => Current;
 
-        public void Dispose()
-        {
-        }
+        public void Dispose() => _owner = null;
+    }
+
+    public IEnumerable<BlockData> ClearBlock(BlockData block)
+    {
+        return Update(block, BlockData.EmptyColor, Layer.Default);
+    }
+
+    public IEnumerable<BlockData> Update(BlockData block, Color newColor, Layer newLayer)
+    {
+        return ReplaceBlock(new BlockData(
+            block.Row, block.Col,
+            block.Top, block.Bottom,
+            block.Left, block.Right,
+            newLayer, newColor));
     }
 }

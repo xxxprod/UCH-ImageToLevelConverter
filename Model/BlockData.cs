@@ -1,9 +1,10 @@
+using System;
 using System.Windows.Media;
 using UCH_ImageToLevelConverter.Tools;
 
 namespace UCH_ImageToLevelConverter.Model;
 
-public class BlockData
+public struct BlockData
 {
     public static readonly (int Width, int Height)[] BlockSizes =
     {
@@ -20,41 +21,68 @@ public class BlockData
         (1, 1)
     };
 
-    public static readonly Color EmptyColor = System.Windows.Media.Color.FromArgb(20, 255, 255, 255);
+    public static readonly Color EmptyColor = new();
 
-    public BlockData(int row, int col, Layer layer, Color? color = default) : this(row, col, 1, 1, layer, color ?? EmptyColor)
+    public BlockData(int row, int col, Layer layer, Color? color = default) : this(row, col, row, row, col, col, layer, color ?? EmptyColor)
     {
     }
 
-    public BlockData(int row, int col, int width, int height, Layer layer, Color? color = default)
+    public BlockData(int row, int col, int top, int bottom, int left, int right, Layer layer, Color? color = default)
     {
-        Left = col;
-        Right = col + width - 1;
-        Top = row;
-        Bottom = row + height - 1;
-        Color.Value = color ?? EmptyColor;
-        Layer.Value = layer;
+        Row = row;
+        Col = col;
+
+        Top = top;
+        Bottom = bottom;
+
+        Left = left;
+        Right = right;
+
+        Color = color ?? EmptyColor;
+        Layer = layer;
     }
 
-    public BlockData(BlockData block)
-    {
-        Left = block.Left;
-        Right = block.Right;
-        Top = block.Top;
-        Bottom = block.Bottom;
-        Layer.Value = block.Layer;
-        Color.Value = block.Color;
-    }
+    public int Row { get; }
+    public int Col { get; }
 
-    public int Left { get; }
     public int Top { get; }
-    public int Right { get; }
     public int Bottom { get; }
+    public int Left { get; }
+    public int Right { get; }
+    public Color Color { get; }
+    public Layer Layer { get; }
 
-    public int Height => Bottom - Top + 1;
     public int Width => Right - Left + 1;
+    public int Height => Bottom - Top + 1;
     public int Cells => Height * Width;
 
-    public Property<Color> Color { get; } = new();
-    public Property<Layer> Layer { get; } = new();
+
+    //public void Update(Color color, Layer layer)
+    //{
+    //    Color = color;
+    //    Layer = layer;
+    //}
+
+    //public void Update(int top, int bottom, int left, int right, Color color, Layer layer)
+    //{
+    //    Top = top;
+    //    Bottom = bottom;
+    //    Left = left;
+    //    Right = right;
+    //    Update(color, layer);
+    //}
+
+    //public void Clear()
+    //{
+    //    Update(Row, Row, Col, Col, EmptyColor, Layer);
+    //}
+    public BlockData CopyCleared()
+    {
+        return new BlockData(Row, Col, Top, Bottom, Left, Right, Layer.Default, EmptyColor);
+    }
+
+    public BlockData Copy(Color color, Layer layer)
+    {
+        return new BlockData(Row, Col, Top, Bottom, Left, Right, layer, color);
+    }
 }

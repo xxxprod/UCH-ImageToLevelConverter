@@ -15,11 +15,11 @@ class RandomBlockOptimizer : BlockOptimizerBase
 
     public override IEnumerable<BlockData> Optimize()
     {
-        var blocksToOptimize = GetAllBlocks().ToList();
+        var blocksToOptimize = new Stack<BlockData>(GetAllBlocks().OrderBy(a=>_ran.Next()));
 
         while (blocksToOptimize.Any())
         {
-            var nextBlock = blocksToOptimize[_ran.Next(blocksToOptimize.Count)];
+            var nextBlock = blocksToOptimize.Pop();
 
             foreach (var (blockWidth, blockHeight) in BlockData.BlockSizes)
             {
@@ -27,24 +27,23 @@ class RandomBlockOptimizer : BlockOptimizerBase
                 for (var deltaRow = 0; deltaRow < blockHeight && !foundHole; deltaRow++)
                     for (var deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
                     {
-                        var row = nextBlock.Top + deltaRow - RowOffset;
-                        var col = nextBlock.Left + deltaCol - ColOffset;
+                        var row = nextBlock.Row + deltaRow - RowOffset;
+                        var col = nextBlock.Col + deltaCol - ColOffset;
                         if (row >= Height || col >= Width || Blocks[row, col] == null)
                             foundHole = true;
                     }
 
                 if (!foundHole)
                 {
-                    yield return new BlockData(
-                        nextBlock.Top, nextBlock.Left, blockWidth, blockHeight,
+                    yield return new BlockData(0, 0,
+                        nextBlock.Top, nextBlock.Top + blockHeight - 1, nextBlock.Left, nextBlock.Left + blockWidth - 1,
                         nextBlock.Layer, nextBlock.Color);
 
                     for (var deltaRow = 0; deltaRow < blockHeight; deltaRow++)
                         for (var deltaCol = 0; deltaCol < blockWidth; deltaCol++)
                         {
-                            var row = nextBlock.Top + deltaRow - RowOffset;
-                            var col = nextBlock.Left + deltaCol - ColOffset;
-                            blocksToOptimize.Remove(Blocks[row, col]);
+                            var row = nextBlock.Row + deltaRow - RowOffset;
+                            var col = nextBlock.Col + deltaCol - ColOffset;
                             Blocks[row, col] = null;
                         }
 

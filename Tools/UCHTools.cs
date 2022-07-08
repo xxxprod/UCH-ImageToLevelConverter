@@ -14,7 +14,7 @@ public static class UCHTools
     public static string CreateSnapshotXml(this BlockDataCollection blocks)
     {
         var activeBlocks = blocks
-            .Where(a => a.Color.Value != BlockData.EmptyColor)
+            .Where(a => a.Color != BlockData.EmptyColor)
             .ToArray();
 
         var blockXmls = activeBlocks.Select<BlockData, object>((block, idx) => CreateBlockXml(blocks.Width, blocks.Height, block, idx)).ToArray();
@@ -200,19 +200,19 @@ public static class UCHTools
         var attributes = new List<object>
         {
             new XAttribute("sceneID", index),
-            new XAttribute("blockID", block.Layer.Value == Layer.Default? blockId : 9000 + blockId),
+            new XAttribute("blockID", block.Layer == Layer.Default? blockId : 9000 + blockId),
             new XAttribute("pX", x),
             new XAttribute("pY", y),
             new XAttribute("rZ", rot),
             new XAttribute("placeableID", 13 + index * 2),
-            new XAttribute("colR", block.Color.Value.R / 512.0f),
-            new XAttribute("colG", block.Color.Value.G / 512.0f),
-            new XAttribute("colB", block.Color.Value.B / 512.0f)
+            new XAttribute("colR", block.Color.R / 512.0f),
+            new XAttribute("colG", block.Color.G / 512.0f),
+            new XAttribute("colB", block.Color.B / 512.0f)
         };
 
-        if (block.Layer.Value != Layer.Default)
+        if (block.Layer != Layer.Default)
         {
-            var jsonString = block.Layer.Value.ToModBlockInfoString();
+            var jsonString = block.Layer.ToModBlockInfoString();
             var xAttribute = new XAttribute("overrideName", jsonString);
             attributes.Add(xAttribute);
         }

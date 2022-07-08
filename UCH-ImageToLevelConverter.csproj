@@ -33,6 +33,7 @@
     <PackageReference Include="Microsoft.ML" Version="1.7.1" />
     <PackageReference Include="PropertyTools.Wpf" Version="3.1.0" />
     <PackageReference Include="SevenZip" Version="19.0.0" />
+    <PackageReference Include="WriteableBitmapEx" Version="1.6.8" />
   </ItemGroup>
 
   <ItemGroup>
