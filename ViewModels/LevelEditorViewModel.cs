@@ -297,79 +297,9 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blocksToOptimize.Count <= 1)
             return;
 
-        var minCol = blocksToOptimize.Min(a => a.Left);
-        var maxCol = blocksToOptimize.Max(a => a.Left);
-        var minRow = blocksToOptimize.Min(a => a.Top);
-        var maxRow = blocksToOptimize.Max(a => a.Top);
+        var optimizer = new RandomBlockOptimizer(blocksToOptimize);
 
-        var width = maxCol - minCol + 1;
-        var height = maxRow - minRow + 1;
-
-        var blockGrid = new BlockData[height, width];
-
-        foreach (var blockData in blocksToOptimize)
-        {
-            var row = blockData.Top - minRow;
-            var col = blockData.Left - minCol;
-            blockGrid[row, col] = blockData;
-        }
-
-        (int Width, int Height)[] blockSizes =
-        {
-            (16, 6), (6, 16),
-            (8, 8),
-            (1, 16), (16, 1),
-            (4, 4),
-            (2, 4), (4, 2),
-            (1, 8), (8, 1),
-            (2, 2),
-            (1, 4), (4, 1),
-            (1, 3), (3, 1),
-            (1, 2), (2, 1),
-            (1, 1)
-        };
-
-        var ran = new Random();
-
-        var optimizedBlocks = new List<BlockData>();
-
-        while (blocksToOptimize.Any())
-        {
-            var nextBlock = blocksToOptimize[ran.Next(blocksToOptimize.Count)];
-
-            foreach (var (blockWidth, blockHeight) in blockSizes)
-            {
-                var foundHole = false;
-                for (var deltaRow = 0; deltaRow < blockHeight && !foundHole; deltaRow++)
-                    for (var deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
-                    {
-                        var row = nextBlock.Top + deltaRow - minRow;
-                        var col = nextBlock.Left + deltaCol - minCol;
-                        if (row >= height || col >= width || blockGrid[row, col] == null)
-                            foundHole = true;
-                    }
-
-                if (!foundHole)
-                {
-                    optimizedBlocks.Add(new BlockData(
-                        nextBlock.Top, nextBlock.Left, blockWidth, blockHeight,
-                        nextBlock.Layer, nextBlock.Color));
-
-                    for (var deltaRow = 0; deltaRow < blockHeight; deltaRow++)
-                        for (var deltaCol = 0; deltaCol < blockWidth; deltaCol++)
-                        {
-                            var row = nextBlock.Top + deltaRow - minRow;
-                            var col = nextBlock.Left + deltaCol - minCol;
-                            blocksToOptimize.Remove(blockGrid[row, col]);
-                            blockGrid[row, col] = null;
-                        }
-
-                    break;
-                }
-            }
-        }
-
-        foreach (var optimizedBlock in optimizedBlocks)
+        foreach (var optimizedBlock in optimizer.Optimize())
             Blocks.SetBlock(optimizedBlock);
     }
 

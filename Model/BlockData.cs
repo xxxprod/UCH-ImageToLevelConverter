@@ -5,6 +5,21 @@ namespace UCH_ImageToLevelConverter.Model;
 
 public class BlockData
 {
+    public static readonly (int Width, int Height)[] BlockSizes =
+    {
+        (16, 6), (6, 16),
+        (8, 8),
+        (1, 16), (16, 1),
+        (4, 4),
+        (2, 4), (4, 2),
+        (1, 8), (8, 1),
+        (2, 2),
+        (1, 4), (4, 1),
+        (1, 3), (3, 1),
+        (1, 2), (2, 1),
+        (1, 1)
+    };
+
     public static readonly Color EmptyColor = System.Windows.Media.Color.FromArgb(20, 255, 255, 255);
 
     public BlockData(int row, int col, Layer layer, Color? color = default) : this(row, col, 1, 1, layer, color ?? EmptyColor)
