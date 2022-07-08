@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Windows;
@@ -17,10 +18,10 @@ public class LayerOpacityConverter : IMultiValueConverter
 
         var highlightLayer = (bool)values[0];
         var highlightedLayer = (LayerViewModel)values[1];
-        var allLayers = (LayerViewModel[])values[2];
+        var allLayers = (Dictionary<Layer, LayerViewModel>)values[2];
         var blockLayer = (Layer)values[3];
 
-        if (!allLayers[(int) blockLayer].IsVisible)
+        if (!allLayers[blockLayer].IsVisible)
             return 0.0;
 
         if (!highlightLayer || blockLayer == highlightedLayer.Layer)

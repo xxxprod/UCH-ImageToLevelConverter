@@ -56,113 +56,135 @@
 
         <ScrollViewer Grid.Column="0" Grid.Row="2" Margin="14" VerticalScrollBarVisibility="Auto">
             <StackPanel Orientation="Vertical">
-                <UniformGrid Columns="2" VerticalAlignment="Top">
-
-                    <Label Content="Pick Color" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding ColorPickingEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/color_picker.ico" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
-
-                </UniformGrid>
-
-                <pt:ColorPicker SelectedColor="{Binding SelectedPaintColor.Value}" />
 
                 <UniformGrid Columns="2" VerticalAlignment="Top">
 
                     <Label />
                     <Label />
 
-                    <Label Content="Brush" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding PaintBrushEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/brush.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
-
-                    <Label Content="Fill Region" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding FillBrushEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/brush.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
-
-                    <Label />
-                    <Label />
-
-                    <Label Content="Pixel Eraser" FontWeight="Bold" />
+                    <Label Content="Pixel Eraser" />
                     <CheckBox IsChecked="{Binding PixelEraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
-                    <Label Content="Magic Color Eraser" FontWeight="Bold" />
+                    <Label Content="Magic Color Eraser" />
                     <CheckBox IsChecked="{Binding MagicEraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
 
-                    <Label />
-                    <Label />
-
-                    <Label Content="Optimize Region" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding OptimizerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/optimize.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
-
                 </UniformGrid>
 
-                <Button Content="Optimize All" Command="{Binding OptimizeAllCommand}"/>
-
-                <UniformGrid Columns="2" VerticalAlignment="Top">
-
-                    <Label />
-                    <Label />
-
-                    <Label Content="Break into Cells" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding BreakBlocksEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/optimize.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
-
-                </UniformGrid>
-                <Button Content="Break All into Cells" Command="{Binding BreakAllCommand}"/>
 
 
-                <UniformGrid Columns="2" VerticalAlignment="Top">
+                <Expander Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="PaintExpander_OnCollapsed">
+                    <Expander.HeaderTemplate>
+                        <DataTemplate>
+                            <Label Content="Paint" FontWeight="Bold" />
+                        </DataTemplate>
+                    </Expander.HeaderTemplate>
 
-                    <Label />
-                    <Label />
+                    <StackPanel Orientation="Vertical">
+                        <UniformGrid Columns="2" VerticalAlignment="Top">
 
-                    <Label Content="Move to Layer" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding MoveToLayerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/layers.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
+                            <UniformGrid Columns="2" VerticalAlignment="Top">
 
-                    <Label Content="Move Region to Layer" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding MoveRegionToLayerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/layers.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
+                                <Label Content="Pick Color" />
+                                <CheckBox IsChecked="{Binding ColorPickingEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                    <CheckBox.Content>
+                                        <Image Source="../Icons/color_picker.ico" Width="16" Height="16" />
+                                    </CheckBox.Content>
+                                </CheckBox>
 
-                    <Label Content="Highlight Layer" FontWeight="Bold" />
-                    <CheckBox IsChecked="{Binding HighlightLayer.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
-                        <CheckBox.Content>
-                            <Image Source="../Icons/layers.png" Width="16" Height="16" />
-                        </CheckBox.Content>
-                    </CheckBox>
+                            </UniformGrid>
 
-                </UniformGrid>
+                            <pt:ColorPicker SelectedColor="{Binding SelectedPaintColor.Value}" />
 
-                <views:LayerView LayerData="{Binding Layers}" />
+                            <Label Content="Brush" />
+                            <CheckBox IsChecked="{Binding PaintBrushEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/brush.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+
+                            <Label Content="Fill Region" />
+                            <CheckBox IsChecked="{Binding FillBrushEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/brush.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+                        </UniformGrid>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="OptimizerExpander_OnCollapsed">
+                    <Expander.HeaderTemplate>
+                        <DataTemplate>
+                            <Label Content="Optimizer" FontWeight="Bold" />
+                        </DataTemplate>
+                    </Expander.HeaderTemplate>
+                    <StackPanel Orientation="Vertical">
+                        <UniformGrid Columns="2" VerticalAlignment="Top">
+                            <Label Content="Optimize Region" />
+                            <CheckBox IsChecked="{Binding OptimizerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/optimize.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+                        </UniformGrid>
+
+                        <Button Content="Optimize All" Command="{Binding OptimizeAllCommand}"/>
+
+                        <UniformGrid Columns="2" VerticalAlignment="Top">
+                            <Label Content="Break into Cells" />
+                            <CheckBox IsChecked="{Binding BreakBlocksEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/optimize.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+                        </UniformGrid>
+                        <Button Content="Break All into Cells" Command="{Binding BreakAllCommand}"/>
+                    </StackPanel>
+                </Expander>
+
+                <Expander Header="{Binding}" Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="LayerExpander_OnCollapsed">
+                    <Expander.HeaderTemplate>
+                        <DataTemplate>
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition MinWidth="100" Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <Label Content="Layers" FontWeight="Bold"/>
+                                <CheckBox Grid.Column="1" IsChecked="{Binding HighlightLayer.Value}" HorizontalAlignment="Center" VerticalAlignment="Center" Content="(Highlight)"/>
+                            </Grid>
+                        </DataTemplate>
+                    </Expander.HeaderTemplate>
+
+                    <StackPanel Orientation="Vertical">
+                        <UniformGrid Columns="2" VerticalAlignment="Top">
+
+                            <Label Content="Move to Layer" />
+                            <CheckBox IsChecked="{Binding MoveToLayerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+
+                            <Label Content="Move Region to Layer" />
+                            <CheckBox IsChecked="{Binding MoveRegionToLayerEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+
+                        </UniformGrid>
+
+                        <views:LayerView Margin="0,0,6,0" />
+                    </StackPanel>
+                </Expander>
 
             </StackPanel>
         </ScrollViewer>

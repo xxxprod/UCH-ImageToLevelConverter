@@ -200,7 +200,7 @@ public static class UCHTools
         var attributes = new List<object>
         {
             new XAttribute("sceneID", index),
-            new XAttribute("blockID", block.Layer.Value == Layer.Normal ?blockId:9000+blockId),
+            new XAttribute("blockID", block.Layer.Value == Layer.Default? blockId : 9000 + blockId),
             new XAttribute("pX", x),
             new XAttribute("pY", y),
             new XAttribute("rZ", rot),
@@ -210,9 +210,9 @@ public static class UCHTools
             new XAttribute("colB", block.Color.Value.B / 512.0f)
         };
 
-        if (block.Layer.Value != Layer.Normal)
+        if (block.Layer.Value != Layer.Default)
         {
-            var jsonString = new ModBlockInfo(block.Layer, 1).ToJsonString();
+            var jsonString = block.Layer.Value.ToModBlockInfoString();
             var xAttribute = new XAttribute("overrideName", jsonString);
             attributes.Add(xAttribute);
         }
@@ -220,32 +220,6 @@ public static class UCHTools
         return new XElement("block", attributes);
     }
 
-    public class ModBlockInfo
-    {
-        public const string ModBlockTag = "[ModBlock]";
-        public const string StartMarker = "mbi::";
-        public const string EndMarker = "::mbi";
-
-        public ModBlockInfo(Layer layer, double alpha)
-        {
-            Layer = layer switch
-            {
-                Model.Layer.Background => "Main Background",
-                Model.Layer.Foreground => "Effects",
-                _ => throw new NotSupportedException($"Layer '{layer}' not supported")
-            };
-            Alpha = alpha;
-        }
-
-        [JsonProperty("layer")]
-        public string Layer { get; }
-
-        [JsonProperty("alpha")]
-        public double Alpha { get; }
-
-        public string ToJsonString()
-        {
-            return $"{ModBlockTag} {StartMarker}{JsonConvert.SerializeObject(this)}{EndMarker}";
-        }
-    }
+    private static string ToModBlockInfoString(this Layer layer) => 
+        $"[ModBlock] mbi::{JsonConvert.SerializeObject(new { layer })}::mbi";
 }

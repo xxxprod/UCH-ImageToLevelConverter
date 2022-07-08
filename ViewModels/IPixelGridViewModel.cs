@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UCH_ImageToLevelConverter.Model;
 using UCH_ImageToLevelConverter.Tools;
 
@@ -9,7 +10,7 @@ public interface IPixelGridViewModel
     Property<bool> EditorEnabled { get; }
     Property<bool> HighlightLayer { get; }
     Property<LayerViewModel> HighlightedLayer { get; }
-    LayerViewModel[] Layers { get; }
+    Dictionary<Layer, LayerViewModel> Layers { get; }
     BlockDataCollection Blocks { get; }
     event Action BlocksChanged;
     DelegateCommand PixelGridActionCommand { get; }

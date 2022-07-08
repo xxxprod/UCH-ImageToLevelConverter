@@ -21,7 +21,7 @@ public class BlockDataCollection : IEnumerable<BlockData>
         {
             for (int col = 0; col < Width; col++)
             {
-                _blocks.Add(new BlockData(row, col, Layer.Normal));
+                _blocks.Add(new BlockData(row, col, Layer.Default));
             }
         }
     }
@@ -73,7 +73,7 @@ public class BlockDataCollection : IEnumerable<BlockData>
                 int row = i / Width;
                 int col = i % Width;
 
-                _blocks.Add(new BlockData(row, col, Layer.Normal));
+                _blocks.Add(new BlockData(row, col, Layer.Default));
                 _blockRefs[i] = _blocks.Count - 1;
             }
         }

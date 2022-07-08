@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
-             xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
+             xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}">
     <Grid Grid.IsSharedSizeScope="True">
@@ -15,17 +15,14 @@
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="*" />
             <ColumnDefinition Width="Auto" SharedSizeGroup="VisibilityColumn" />
-            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
-        
-        <Label Grid.Row="0" Grid.Column="0" Content="Layer" Margin="6,0,0,0" FontWeight="Bold"/>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="Name" Margin="6,0,0,0" FontWeight="Bold"/>
         <Label Grid.Row="0" Grid.Column="1" Content="Visible" Margin="-10,0,0,0" FontWeight="Bold"/>
 
-        <ScrollViewer Name="DummyScrollBar" Grid.Row="0" Grid.Column="2" Height="0"/>
-
-        <ListBox Name="LayerList" Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="3"
-                 ItemsSource="{Binding RelativeSource={RelativeSource AncestorType=views:LayerView}, Path=LayerData}"
-                 SelectedItem="{Binding HighlightedLayer.Value}">
+        <ListBox Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Name="LayerList"
+                     ItemsSource="{Binding Layers.Values}"
+                     SelectedItem="{Binding HighlightedLayer.Value}">
 
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
@@ -41,7 +38,13 @@
                             <ColumnDefinition SharedSizeGroup="VisibilityColumn"/>
                         </Grid.ColumnDefinitions>
 
-                        <Label Content="{Binding Layer}" />
+                        <Grid Grid.ColumnSpan="2" Opacity="0.2">
+                            <Grid.Background>
+                                <SolidColorBrush Color="{Binding Layer, Converter={tools:LayerColorConverter}}"></SolidColorBrush>
+                            </Grid.Background>
+                        </Grid>
+
+                        <Label Grid.Column="0" Content="{Binding Layer, Converter={tools:LayerConverter}}" FontWeight="{Binding Layer, Converter={tools:LayerFontWeightConverter}}"/>
                         <CheckBox Grid.Column="1" IsChecked="{Binding IsVisible.Value}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>
