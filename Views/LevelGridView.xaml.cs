@@ -1,4 +1,8 @@
-﻿using System.Windows;
+﻿using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using UCH_ImageToLevelConverter.Model;
 
@@ -33,8 +37,7 @@ public partial class LevelGridView
     {
         _dragEnabled |= e.MiddleButton == MouseButtonState.Pressed;
 
-        if (_dragEnabled)
-            _lastMousePosition = e.GetPosition(ZoomBox);
+        if (_dragEnabled) _lastMousePosition = e.GetPosition(ZoomBox);
     }
 
     private void Canvas_OnPreviewMouseMove(object sender, MouseEventArgs e)
@@ -50,10 +53,13 @@ public partial class LevelGridView
         if (delta == new Vector())
             return;
 
-        _lastMousePosition = newPos;
+        if (_dragEnabled)
+        {
+            ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset - delta.Y);
+            ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset - delta.X);
+        }
 
-        ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset - delta.Y);
-        ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset - delta.X);
+        _lastMousePosition = newPos;
     }
 
     private void ZoomInClicked(object sender, RoutedEventArgs e) => ZoomGrid(true);

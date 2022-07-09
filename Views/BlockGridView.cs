@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -19,6 +21,9 @@ public class BlockGridView : FrameworkElement
 
     private WriteableBitmap _writeableBmp;
     private Point _lastMousePosition;
+
+    [DllImport("User32.dll")]
+    private static extern bool SetCursorPos(int X, int Y);
 
     public BlockGridView()
     {
@@ -41,8 +46,11 @@ public class BlockGridView : FrameworkElement
     }
 
     public static readonly DependencyProperty EmptyBlockColorProperty = DependencyProperty.Register(
-        "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color), FrameworkPropertyMetadataOptions.None, 
-            (o, _) => ((BlockGridView) o).OnEmptyColorChanged()));
+        "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color), FrameworkPropertyMetadataOptions.None,
+            (o, _) => ((BlockGridView)o).OnEmptyColorChanged()));
+
+    private BlockData? _lastRecordedBlock;
+    private Orientation? _snapToEdgeOrientation;
 
     private void OnEmptyColorChanged()
     {
@@ -53,7 +61,7 @@ public class BlockGridView : FrameworkElement
 
     public Color EmptyBlockColor
     {
-        get => (Color) GetValue(EmptyBlockColorProperty);
+        get => (Color)GetValue(EmptyBlockColorProperty);
         set => SetValue(EmptyBlockColorProperty, value);
     }
 
@@ -132,13 +140,18 @@ public class BlockGridView : FrameworkElement
         if (ViewModel == null || !ViewModel.EditorEnabled) return;
 
         _recordingGridActions |= Mouse.LeftButton == MouseButtonState.Pressed;
+
         if (!_recordingGridActions) return;
 
         ViewModel.StartRecordingGridActions();
 
         BlockData? blockData = GetBlockUnderCursor(e);
         if (blockData != null)
+        {
             _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
+            _lastRecordedBlock = blockData;
+            _snapToEdgeOrientation = null;
+        }
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -146,16 +159,56 @@ public class BlockGridView : FrameworkElement
         base.OnMouseMove(e);
 
         _recordingGridActions &= e.LeftButton == MouseButtonState.Pressed;
-        if (ViewModel == null || !_recordingGridActions) return;
+        if (ViewModel == null || !_recordingGridActions)
+            return;
 
         Point newPos = e.GetPosition(this);
         Vector delta = newPos - _lastMousePosition;
         if (delta == new Vector()) return;
-        _lastMousePosition = newPos;
 
         BlockData? blockData = GetBlockUnderCursor(e);
-        if (blockData != null)
-            _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
+        if (blockData == null)
+            return;
+
+        if (ViewModel.SnapToEdgesEnabled)
+        {
+            if (blockData.Value.Row == _lastRecordedBlock!.Value.Row && blockData.Value.Col == _lastRecordedBlock!.Value.Col)
+                return;
+
+            int deltaRow = blockData.Value.Row - _lastRecordedBlock!.Value.Row;
+            int deltaCol = blockData.Value.Col - _lastRecordedBlock!.Value.Col;
+
+            _snapToEdgeOrientation ??= Math.Abs(deltaRow) > Math.Abs(deltaCol)
+                ? Orientation.Vertical
+                : Orientation.Horizontal;
+
+            int row;
+            int col;
+            if (_snapToEdgeOrientation == Orientation.Horizontal)
+            {
+                row = _lastRecordedBlock!.Value.Row;
+                col = _lastRecordedBlock.Value.Col + (deltaCol > 0 ? 1 : -1);
+            }
+            else
+            {
+                row = _lastRecordedBlock!.Value.Row + (deltaRow > 0 ? 1 : -1);
+                col = _lastRecordedBlock.Value.Col;
+            }
+
+            if (ViewModel.Blocks.IsOutOfBounds(row, col))
+                return;
+
+            blockData = ViewModel.Blocks[row, col];
+            newPos = new Point((col + 0.5) * ScaledCellSize, (row + 0.5) * ScaledCellSize);
+
+            Point screenPosition = PointToScreen(newPos);
+            SetCursorPos((int)screenPosition.X, (int)screenPosition.Y);
+        }
+
+        _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
+
+        _lastMousePosition = newPos;
+        _lastRecordedBlock = blockData;
     }
 
 

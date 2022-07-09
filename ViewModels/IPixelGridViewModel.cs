@@ -10,6 +10,7 @@ public interface IPixelGridViewModel
 {
     Property<bool> EditorEnabled { get; }
     Property<bool> HighlightLayer { get; }
+    Property<bool> SnapToEdgesEnabled { get; }
     Property<LayerViewModel> HighlightedLayer { get; }
     Dictionary<Layer, LayerViewModel> Layers { get; }
     BlockDataCollection Blocks { get; }

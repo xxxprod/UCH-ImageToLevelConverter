@@ -150,4 +150,9 @@ public class BlockDataCollection : IEnumerable<BlockData>
             .GroupBy(a => (a.Top, a.Bottom, a.Left, a.Right))
             .Select(a => a.First());
     }
+
+    public bool IsOutOfBounds(int row, int col)
+    {
+        return row < 0 || col < 0 || row >= Height || col >= Width;
+    }
 }

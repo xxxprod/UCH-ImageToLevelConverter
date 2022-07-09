@@ -32,6 +32,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);
     public Property<bool> EditorEnabled { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
+    public Property<bool> SnapToEdgesEnabled { get; } = new();
     public Property<LayerViewModel> HighlightedLayer { get; } = new();
     public Dictionary<Layer, LayerViewModel> Layers { get; }
     public BlockDataCollection Blocks { get; private set; }

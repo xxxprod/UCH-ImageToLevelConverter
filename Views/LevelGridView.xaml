@@ -43,7 +43,7 @@
                       HorizontalScrollBarVisibility="Auto" 
                       VerticalScrollBarVisibility="Auto"
                       Background="Gray">
-            <views:BlockGridView x:Name="BlockGridView" PreviewMouseMove="Canvas_OnPreviewMouseMove" EmptyBlockColor="{Binding ElementName=ColorPicker, Path=SelectedColor}"/>
+            <views:BlockGridView x:Name="BlockGridView" PreviewMouseMove="Canvas_OnPreviewMouseMove" EmptyBlockColor="{Binding ElementName=ColorPicker, Path=SelectedColor}" />
         </ScrollViewer>
     </Grid>
 </UserControl>

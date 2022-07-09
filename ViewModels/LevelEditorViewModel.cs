@@ -101,6 +101,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> BreakRegionEnabled { get; } = new();
     public Property<bool> MoveToLayerEnabled { get; } = new();
     public Property<bool> MoveRegionToLayerEnabled { get; } = new();
+    public Property<bool> SnapToEdgesEnabled { get; } = new();
 
     public Property<Color> SelectedPaintColor { get; } = new(Colors.Crimson);
     public Property<int> ColorSimilarityThreshold { get; } = new(30);
