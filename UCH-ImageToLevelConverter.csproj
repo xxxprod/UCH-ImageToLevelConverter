@@ -15,6 +15,7 @@
     <None Remove="Icons\eraser.ico" />
     <None Remove="Icons\layers.png" />
     <None Remove="Icons\optimize.png" />
+    <None Remove="Icons\snap.png" />
     <None Remove="Icons\UCH_32x32.png" />
     <None Remove="Icons\undo.png" />
   </ItemGroup>
@@ -22,6 +23,7 @@
   <ItemGroup>
     <Resource Include="Icons\layers.png" />
     <Resource Include="Icons\optimize.png" />
+    <Resource Include="Icons\snap.png" />
     <Resource Include="Icons\UCH_32x32.png" />
   </ItemGroup>
 

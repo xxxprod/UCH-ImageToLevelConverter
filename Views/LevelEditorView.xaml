@@ -76,7 +76,7 @@
                     <Label Content="Snap to Edges:" />
                     <CheckBox IsChecked="{Binding SnapToEdgesEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
-                            <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                            <Image Source="../Icons/snap.png" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
 
