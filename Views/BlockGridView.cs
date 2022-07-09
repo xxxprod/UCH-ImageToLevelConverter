@@ -20,7 +20,6 @@ public class BlockGridView : FrameworkElement
     private double _scale = 1;
 
     private WriteableBitmap _writeableBmp;
-    private Point _lastMousePosition;
 
     [DllImport("User32.dll")]
     private static extern bool SetCursorPos(int X, int Y);
@@ -162,21 +161,18 @@ public class BlockGridView : FrameworkElement
         if (ViewModel == null || !_recordingGridActions)
             return;
 
-        Point newPos = e.GetPosition(this);
-        Vector delta = newPos - _lastMousePosition;
-        if (delta == new Vector()) return;
-
         BlockData? blockData = GetBlockUnderCursor(e);
         if (blockData == null)
             return;
 
+        int deltaRow = blockData.Value.Row - _lastRecordedBlock!.Value.Row;
+        int deltaCol = blockData.Value.Col - _lastRecordedBlock!.Value.Col;
+            
+        if (deltaRow == 0 && deltaCol == 0)
+            return;
+
         if (ViewModel.SnapToEdgesEnabled)
         {
-            if (blockData.Value.Row == _lastRecordedBlock!.Value.Row && blockData.Value.Col == _lastRecordedBlock!.Value.Col)
-                return;
-
-            int deltaRow = blockData.Value.Row - _lastRecordedBlock!.Value.Row;
-            int deltaCol = blockData.Value.Col - _lastRecordedBlock!.Value.Col;
 
             _snapToEdgeOrientation ??= Math.Abs(deltaRow) > Math.Abs(deltaCol)
                 ? Orientation.Vertical
@@ -199,15 +195,13 @@ public class BlockGridView : FrameworkElement
                 return;
 
             blockData = ViewModel.Blocks[row, col];
-            newPos = new Point((col + 0.5) * ScaledCellSize, (row + 0.5) * ScaledCellSize);
 
-            Point screenPosition = PointToScreen(newPos);
+            Point snappedPoint = new((col + 0.5) * ScaledCellSize, (row + 0.5) * ScaledCellSize);
+            Point screenPosition = PointToScreen(snappedPoint);
             SetCursorPos((int)screenPosition.X, (int)screenPosition.Y);
         }
 
         _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
-
-        _lastMousePosition = newPos;
         _lastRecordedBlock = blockData;
     }
 
@@ -230,9 +224,6 @@ public class BlockGridView : FrameworkElement
         int row = (int)(position.Y / ScaledCellSize);
         int col = (int)(position.X / ScaledCellSize);
 
-        if (row < 0 || col < 0) return null;
-        if (row >= ViewModel.Blocks.Height || col >= ViewModel.Blocks.Width) return null;
-
-        return ViewModel.Blocks[row, col];
+        return ViewModel.Blocks.IsOutOfBounds(row, col) ? null : ViewModel.Blocks[row, col];
     }
 }
