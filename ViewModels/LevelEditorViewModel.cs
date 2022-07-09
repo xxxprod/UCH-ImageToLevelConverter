@@ -29,7 +29,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
         NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
-        var pixelGridActions = new[]
+        Property<bool>[] pixelGridActions = new[]
         {
             PixelEraserEnabled,
             MagicEraserEnabled,
@@ -43,16 +43,16 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             MoveRegionToLayerEnabled
         };
 
-        foreach (var pixelGridAction in pixelGridActions)
+        foreach (Property<bool> pixelGridAction in pixelGridActions)
         {
-            var localAction = pixelGridAction;
+            Property<bool> localAction = pixelGridAction;
 
             localAction.OnChanged += newValue =>
             {
                 EditorEnabled.Value = pixelGridActions.Any(a => a);
                 if (!newValue) return;
 
-                foreach (var otherAction in pixelGridActions)
+                foreach (Property<bool> otherAction in pixelGridActions)
                     if (!ReferenceEquals(otherAction, localAction))
                         otherAction.Value = false;
             };
@@ -60,7 +60,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
         Layers = Enum.GetValues<Layer>().OrderBy(a => a).ToDictionary(a => a, a => new LayerViewModel(a, true));
 
-        foreach (var layer in Layers.Values)
+        foreach (LayerViewModel layer in Layers.Values)
             layer.IsVisible.OnChanged += _ => OnLayerVisibilityChanged(layer);
 
         HighlightedLayer.OnChanged += OnHighlightedLayerChanged;
@@ -73,6 +73,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 MoveToLayerEnabled.Value = false;
                 MoveRegionToLayerEnabled.Value = false;
             }
+
             OnBlocksChanged(Blocks);
         };
         HighlightedLayer.Value = Layers[Layer.Default];
@@ -134,6 +135,38 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         PushUndoData(Blocks);
     }
 
+    public bool OnPixelGridAction(BlockData blockData)
+    {
+        if (ColorPickingEnabled)
+        {
+            if (blockData.Color != BlockData.EmptyColor)
+                SelectedPaintColor.Value = blockData.Color;
+        }
+        else if (PixelEraserEnabled || MagicEraserEnabled)
+        {
+            OnBlocksChanged(EraseBlocks(blockData));
+        }
+        else if (PaintBrushEnabled || FillBrushEnabled)
+        {
+            OnBlocksChanged(PaintBlocks(blockData));
+        }
+        else if (OptimizerEnabled)
+        {
+            OnBlocksChanged(OptimizeSection(blockData));
+            return false;
+        }
+        else if (BreakBlockEnabled || BreakRegionEnabled)
+        {
+            OnBlocksChanged(BreakSection(blockData));
+        }
+        else if (MoveToLayerEnabled || MoveRegionToLayerEnabled)
+        {
+            OnBlocksChanged(MoveToLayer(blockData));
+        }
+
+        return true;
+    }
+
     private void MoveToLayerChanged(bool moveToLayerEnabled)
     {
         if (moveToLayerEnabled)
@@ -146,12 +179,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void OnLayerVisibilityChanged(LayerViewModel layer)
     {
-        //if (HighlightedLayer.Value == layer && !layer.IsVisible)
-        //{
-        //    HighlightedLayer.Value = Layers.Values.FirstOrDefault(a => a.IsVisible) ?? Layers[Layer.Default];
-        //    HighlightedLayer.Value.IsVisible.Value = true;
-        //}
-
         OnBlocksChanged(Blocks);
     }
 
@@ -173,12 +200,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         _undoHistory.Push(Blocks.ToArray());
 
-        var blockData = _redoHistory.Pop();
-
-        foreach (var block in blockData)
-        {
-            var _ = Blocks.ReplaceBlock(block).ToArray();
-        }
+        Blocks.ReplaceBlocks(_redoHistory.Pop());
 
         CanUndo.Value = _undoHistory.Any();
         CanRedo.Value = _redoHistory.Any();
@@ -189,12 +211,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         _redoHistory.Push(Blocks.ToArray());
 
-        var blockData = _undoHistory.Pop();
-
-        foreach (var block in blockData)
-        {
-            var _ = Blocks.ReplaceBlock(block).ToArray();
-        }
+        Blocks.ReplaceBlocks(_undoHistory.Pop());
 
         CanUndo.Value = _undoHistory.Any();
         CanRedo.Value = _redoHistory.Any();
@@ -204,11 +221,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void BreakAll()
     {
         PushUndoData(Blocks);
-
-        foreach (var block in Blocks.BreakToCells())
-        {
-            var _ = Blocks.ReplaceBlock(block).ToArray();
-        }
+        
+        Blocks.ReplaceBlocks(Blocks.BreakToCells());
 
         OnBlocksChanged(Blocks);
     }
@@ -217,7 +231,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     {
         PushUndoData(Blocks);
 
-        var blocksByColor = Blocks
+        Dictionary<Color, BlockData[]> blocksByColor = Blocks
             .Where(a => a.Color != BlockData.EmptyColor)
             .GroupBy(a => a.Color)
             .ToDictionary(
@@ -225,40 +239,12 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 a => a.BreakToCells()
             );
 
-        foreach (var (_, blocks) in blocksByColor)
+        foreach ((var _, BlockData[] blocks) in blocksByColor)
         {
-            var _ = OptimizeBlocks(blocks).ToArray();
+            BlockData[] _ = OptimizeBlocks(blocks).ToArray();
         }
 
         OnBlocksChanged(Blocks);
-    }
-
-    public bool OnPixelGridAction(BlockData blockData)
-    {
-        IEnumerable<BlockData> changedBlocks = Enumerable.Empty<BlockData>();
-
-        if (ColorPickingEnabled)
-        {
-            if (blockData.Color != BlockData.EmptyColor)
-                SelectedPaintColor.Value = blockData.Color;
-        }
-        else if (PixelEraserEnabled || MagicEraserEnabled)
-            OnBlocksChanged(EraseBlocks(blockData));
-        else if (PaintBrushEnabled || FillBrushEnabled)
-            OnBlocksChanged(PaintBlocks(blockData));
-        else if (OptimizerEnabled)
-        {
-            OnBlocksChanged(OptimizeSection(blockData));
-            return false;
-        }
-        else if (BreakBlockEnabled || BreakRegionEnabled)
-            OnBlocksChanged(BreakSection(blockData));
-        else if (MoveToLayerEnabled || MoveRegionToLayerEnabled)
-            OnBlocksChanged(MoveToLayer(blockData));
-
-        OnBlocksChanged(changedBlocks);
-
-        return true;
     }
 
     private IEnumerable<BlockData> BreakSection(BlockData blockData)
@@ -266,14 +252,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             yield break;
 
-        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color);
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color);
 
         foreach (BlockData block in blocksToOptimize)
         {
-            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(block.BreakToCells()))
+            foreach (BlockData updatedBlock in Blocks.ReplaceBlocks(block.BreakToCells()))
                 yield return updatedBlock;
 
-            if(!BreakRegionEnabled)
+            if (!BreakRegionEnabled)
                 yield break;
         }
     }
@@ -283,7 +269,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
+        BlockData[] blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
             .BreakToCells();
 
         return OptimizeBlocks(blocksToOptimize);
@@ -294,13 +280,11 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blocksToOptimize.Count <= 1)
             yield break;
 
-        var optimizer = new RandomBlockOptimizer(blocksToOptimize);
+        RandomBlockOptimizer optimizer = new(blocksToOptimize);
 
         foreach (BlockData optimizedBlock in optimizer.Optimize())
-        {
-            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(optimizedBlock))
-                yield return updatedBlock;
-        }
+        foreach (BlockData updatedBlock in Blocks.ReplaceBlock(optimizedBlock))
+            yield return updatedBlock;
     }
 
     private IEnumerable<BlockData> MoveToLayer(BlockData blockData)
@@ -323,13 +307,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         return UpdateBlocks(blockData, !MagicEraserEnabled, block => Blocks.ClearBlock(block));
     }
 
-    private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock, Func<BlockData, IEnumerable<BlockData>> updateBlock)
+    private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
+        Func<BlockData, IEnumerable<BlockData>> updateBlock)
     {
-        var blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color);
+        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color);
 
-        foreach (var block in blocksWithSameColor)
+        foreach (BlockData block in blocksWithSameColor)
         {
-            foreach (var updated in updateBlock(block))
+            foreach (BlockData updated in updateBlock(block))
                 yield return updated;
 
             if (onlyFirstBlock)
@@ -339,14 +324,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void SaveLevel()
     {
-        var snapshotXml = Blocks.CreateSnapshotXml();
+        string snapshotXml = Blocks.CreateSnapshotXml();
 
-        var compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(snapshotXml));
+        byte[] compressed = SevenZipHelper.Compress(Encoding.UTF8.GetBytes(snapshotXml));
 
         if (!Directory.Exists(SnapshotsDirectory))
             Directory.CreateDirectory(SnapshotsDirectory);
 
-        var filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
+        string filePath = Path.GetFullPath($"{SnapshotsDirectory}/{LevelName.Value}.c.snapshot");
 
         if (File.Exists(filePath))
             if (MessageBox.Show(Application.Current.MainWindow!,
@@ -359,7 +344,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
-            var startInfo = new ProcessStartInfo
+            ProcessStartInfo startInfo = new ProcessStartInfo
             {
                 Arguments = Path.GetDirectoryName(filePath),
                 FileName = "explorer.exe"

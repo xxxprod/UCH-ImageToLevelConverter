@@ -1,12 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Threading;
+﻿using System.Collections.Generic;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using UCH_ImageToLevelConverter.Model;
 using UCH_ImageToLevelConverter.ViewModels;
 
@@ -14,7 +10,7 @@ namespace UCH_ImageToLevelConverter.Views;
 
 public class BlockGridView : FrameworkElement
 {
-    public const int DefaultCellSize = 30;
+    public const int DefaultCellSize = 15;
     private readonly DrawingGroup _backingStore = new();
 
     private bool _recordingGridActions;
@@ -111,8 +107,10 @@ public class BlockGridView : FrameworkElement
     {
         base.OnMouseDown(e);
 
+        if (ViewModel == null || !ViewModel.EditorEnabled) return;
+
         _recordingGridActions |= Mouse.LeftButton == MouseButtonState.Pressed;
-        if (ViewModel == null || !ViewModel.EditorEnabled || !_recordingGridActions) return;
+        if (!_recordingGridActions) return;
 
         ViewModel.StartRecordingGridActions();
 
@@ -130,10 +128,7 @@ public class BlockGridView : FrameworkElement
 
         Point newPos = e.GetPosition(this);
         Vector delta = newPos - _lastMousePosition;
-
-        if (delta == new Vector())
-            return;
-
+        if (delta == new Vector()) return;
         _lastMousePosition = newPos;
 
         BlockData? blockData = GetBlockUnderCursor(e);

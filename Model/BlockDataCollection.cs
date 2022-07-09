@@ -53,30 +53,23 @@ public class BlockDataCollection : IEnumerable<BlockData>
     public BlockData this[int idx] => _blocks[idx / Width, idx % Width];
     public BlockData this[int row, int col] => _blocks[row, col];
 
-    public IEnumerable<BlockData> ReplaceBlock(BlockData block) => ReplaceBlock(new[] { block });
-    public IEnumerable<BlockData> ReplaceBlock(IEnumerable<BlockData> blocks)
+    public List<BlockData> ReplaceBlock(BlockData block) => ReplaceBlocks(new[] { block });
+    public List<BlockData> ReplaceBlocks(IEnumerable<BlockData> blocks)
     {
+        List<BlockData> replacedBlocks = new();
+
         foreach (BlockData block in blocks)
         {
             for (var row = block.Top; row <= block.Bottom; row++)
             {
                 for (int col = block.Left; col <= block.Right; col++)
                 {
-                    yield return _blocks[row, col] = new BlockData(row, col, block.Top, block.Bottom, block.Left, block.Right, block.Layer, block.Color);
+                    replacedBlocks.Add(_blocks[row, col] = new BlockData(row, col, block.Top, block.Bottom, block.Left, block.Right, block.Layer, block.Color));
                 }
             }
         }
-    }
 
-    private IEnumerable<BlockData> GetCells(BlockData block)
-    {
-        for (var row = block.Top; row <= block.Bottom; row++)
-        {
-            for (int col = block.Left; col <= block.Right; col++)
-            {
-                yield return _blocks[row, col];
-            }
-        }
+        return replacedBlocks;
     }
 
     public IEnumerable<int> GetNeighborIndices(BlockData block)
