@@ -53,13 +53,17 @@ public class BlockDataCollection : IEnumerable<BlockData>
     public BlockData this[int idx] => _blocks[idx / Width, idx % Width];
     public BlockData this[int row, int col] => _blocks[row, col];
 
-    public IEnumerable<BlockData> ReplaceBlock(BlockData block)
+    public IEnumerable<BlockData> ReplaceBlock(BlockData block) => ReplaceBlock(new[] { block });
+    public IEnumerable<BlockData> ReplaceBlock(IEnumerable<BlockData> blocks)
     {
-        for (var row = block.Top; row <= block.Bottom; row++)
+        foreach (BlockData block in blocks)
         {
-            for (int col = block.Left; col <= block.Right; col++)
+            for (var row = block.Top; row <= block.Bottom; row++)
             {
-                yield return _blocks[row, col] = new BlockData(row, col, block.Top, block.Bottom, block.Left, block.Right, block.Layer, block.Color);
+                for (int col = block.Left; col <= block.Right; col++)
+                {
+                    yield return _blocks[row, col] = new BlockData(row, col, block.Top, block.Bottom, block.Left, block.Right, block.Layer, block.Color);
+                }
             }
         }
     }

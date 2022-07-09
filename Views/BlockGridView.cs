@@ -118,7 +118,7 @@ public class BlockGridView : FrameworkElement
 
         BlockData? blockData = GetBlockUnderCursor(e);
         if (blockData != null)
-            ViewModel.PixelGridActionCommand.Execute(blockData);
+            _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
     }
 
     protected override void OnMouseMove(MouseEventArgs e)
@@ -138,7 +138,7 @@ public class BlockGridView : FrameworkElement
 
         BlockData? blockData = GetBlockUnderCursor(e);
         if (blockData != null)
-            ViewModel.PixelGridActionCommand.Execute(blockData);
+            _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
     }
 
 

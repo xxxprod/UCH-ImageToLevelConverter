@@ -15,7 +15,6 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     {
         OpenFileCommand = new DelegateCommand(_ => OpenFile());
         NavigateToLevelEditorCommand = new DelegateCommand(_ => { });
-        PixelGridActionCommand = new DelegateCommand(_ => throw new NotImplementedException());
         Layers = Enum.GetValues<Layer>().ToDictionary(a => a, a => new LayerViewModel(a, true));
         RegisterPropertyChangedCallback(UpdatePreview,
             ImageFileName, Width, Height, MaxColors);
@@ -24,11 +23,13 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     public DelegateCommand OpenFileCommand { get; }
     public DelegateCommand NavigateToLevelEditorCommand { get; }
-    public DelegateCommand PixelGridActionCommand { get; }
 
     public Property<BitmapSource> OriginalImage { get; } = new();
 
     public Property<string> ImageFileName { get; } = new();
+    public IntProperty Width { get; } = new(100, 0, 150);
+    public IntProperty Height { get; } = new(100, 0, 150);
+    public NullableIntProperty MaxColors { get; } = new(null, null, 256);
     public Property<bool> EditorEnabled { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
     public Property<LayerViewModel> HighlightedLayer { get; } = new();
@@ -37,14 +38,21 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public IntProperty LevelFullness { get; } = new();
 
     public event Action<IEnumerable<BlockData>> BlocksChanged;
-    public IntProperty Width { get; } = new(100, 0, 150);
-    public IntProperty Height { get; } = new(100, 0, 150);
-    public NullableIntProperty MaxColors { get; } = new(null, null, 256);
+
+    public bool OnPixelGridAction(BlockData blockData)
+    {
+        throw new NotImplementedException();
+    }
+
+    public void StartRecordingGridActions()
+    {
+        throw new NotImplementedException();
+    }
 
 
     private void OpenFile()
     {
-        var openFileDialog = new OpenFileDialog();
+        OpenFileDialog openFileDialog = new OpenFileDialog();
         if (openFileDialog.ShowDialog() == true)
             ImageFileName.Value = openFileDialog.FileName;
     }
@@ -59,7 +67,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
         {
             OriginalImage.Value = new BitmapImage(new Uri(ImageFileName.Value));
 
-            var bitmapSource = OriginalImage.Value
+            BitmapSource bitmapSource = OriginalImage.Value
                 .Resize(Width, Height)
                 .Format(PixelFormats.Rgb24);
 
@@ -78,10 +86,9 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
         UpdateLevelFullness();
     }
 
+
     private void UpdateLevelFullness()
     {
         LevelFullness.Value = Blocks.Count(a => a.Color != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
     }
-
-    public void StartRecordingGridActions() => throw new NotImplementedException();
 }

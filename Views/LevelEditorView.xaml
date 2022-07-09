@@ -139,7 +139,13 @@
 
                         <UniformGrid Columns="2" VerticalAlignment="Top">
                             <Label Content="Break into Cells" />
-                            <CheckBox IsChecked="{Binding BreakBlocksEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <CheckBox IsChecked="{Binding BreakBlockEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <CheckBox.Content>
+                                    <Image Source="../Icons/optimize.png" Width="16" Height="16" />
+                                </CheckBox.Content>
+                            </CheckBox>
+                            <Label Content="Break Region into Cells" />
+                            <CheckBox IsChecked="{Binding BreakRegionEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                                 <CheckBox.Content>
                                     <Image Source="../Icons/optimize.png" Width="16" Height="16" />
                                 </CheckBox.Content>

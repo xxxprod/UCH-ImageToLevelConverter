@@ -13,7 +13,7 @@ public static class BlockDataExtensions
         return blocks.SelectMany(BreakToCells).ToArray();
     }
 
-    private static IEnumerable<BlockData> BreakToCells(this BlockData block)
+    public static IEnumerable<BlockData> BreakToCells(this BlockData block)
     {
         if (block.Cells == 1)
             yield return block;
@@ -28,16 +28,8 @@ public static class BlockDataExtensions
             }
         }
     }
-
-    //public static IEnumerable<BlockData> CopyBlocks(this IEnumerable<BlockData> blocks)
-    //{
-    //    foreach (BlockData block in blocks)
-    //    {
-    //        yield return block;
-    //    }
-    //}
-
-    public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock, Color color, double maxDistance = 30)
+    
+    public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock, Color color, double maxDistance = 20)
     {
         var queue = new Queue<BlockData>();
         var done = new HashSet<(int Top, int Bottom, int Left, int Right)>();
@@ -71,7 +63,6 @@ public static class BlockDataExtensions
     {
         if (a == BlockData.EmptyColor ^ b == BlockData.EmptyColor)
             return PositiveInfinity;
-
         return Math.Sqrt(Math.Pow(a.R - b.R, 2) + Math.Pow(a.G - b.G, 2) + Math.Pow(a.B - b.B, 2));
     }
 }

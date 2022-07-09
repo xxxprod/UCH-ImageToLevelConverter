@@ -13,7 +13,7 @@ public interface IPixelGridViewModel
     Dictionary<Layer, LayerViewModel> Layers { get; }
     BlockDataCollection Blocks { get; }
     event Action<IEnumerable<BlockData>> BlocksChanged;
-    DelegateCommand PixelGridActionCommand { get; }
+    bool OnPixelGridAction(BlockData blockData);
     IntProperty LevelFullness { get; }
     void StartRecordingGridActions();
 }

@@ -18,7 +18,7 @@ namespace UCH_ImageToLevelConverter.Views
         {
             var vm = (LevelEditorViewModel)DataContext;
             vm.OptimizerEnabled.Value = false;
-            vm.BreakBlocksEnabled.Value = false;
+            vm.BreakBlockEnabled.Value = false;
         }
 
         private void PaintExpander_OnCollapsed(object sender, RoutedEventArgs e)

@@ -22,7 +22,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     public LevelEditorViewModel()
     {
-        PixelGridActionCommand = new DelegateCommand(o => OnPixelGridAction((BlockData)o));
         UndoCommand = new DelegateCommand(o => UndoAction());
         RedoCommand = new DelegateCommand(o => RedoAction());
         OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
@@ -38,7 +37,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             PaintBrushEnabled,
             FillBrushEnabled,
             OptimizerEnabled,
-            BreakBlocksEnabled,
+            BreakBlockEnabled,
+            BreakRegionEnabled,
             MoveToLayerEnabled,
             MoveRegionToLayerEnabled
         };
@@ -96,7 +96,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> PaintBrushEnabled { get; } = new();
     public Property<bool> FillBrushEnabled { get; } = new();
     public Property<bool> OptimizerEnabled { get; } = new();
-    public Property<bool> BreakBlocksEnabled { get; } = new();
+    public Property<bool> BreakBlockEnabled { get; } = new();
+    public Property<bool> BreakRegionEnabled { get; } = new();
     public Property<bool> MoveToLayerEnabled { get; } = new();
     public Property<bool> MoveRegionToLayerEnabled { get; } = new();
 
@@ -106,8 +107,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> HighlightLayer { get; } = new();
 
     public Dictionary<Layer, LayerViewModel> Layers { get; }
-
-    public DelegateCommand PixelGridActionCommand { get; }
     public IntProperty LevelFullness { get; } = new();
 
     public BlockDataCollection Blocks
@@ -152,7 +151,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         //    HighlightedLayer.Value = Layers.Values.FirstOrDefault(a => a.IsVisible) ?? Layers[Layer.Default];
         //    HighlightedLayer.Value.IsVisible.Value = true;
         //}
-        
+
         OnBlocksChanged(Blocks);
     }
 
@@ -234,41 +233,48 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         OnBlocksChanged(Blocks);
     }
 
-    private void OnPixelGridAction(BlockData blockData)
+    public bool OnPixelGridAction(BlockData blockData)
     {
         IEnumerable<BlockData> changedBlocks = Enumerable.Empty<BlockData>();
 
         if (ColorPickingEnabled)
         {
-            if (blockData.Color == BlockData.EmptyColor)
-                return;
-
-            SelectedPaintColor.Value = blockData.Color;
+            if (blockData.Color != BlockData.EmptyColor)
+                SelectedPaintColor.Value = blockData.Color;
         }
         else if (PixelEraserEnabled || MagicEraserEnabled)
-            changedBlocks = EraseBlocks(blockData);
+            OnBlocksChanged(EraseBlocks(blockData));
         else if (PaintBrushEnabled || FillBrushEnabled)
-            changedBlocks = PaintBlocks(blockData);
+            OnBlocksChanged(PaintBlocks(blockData));
         else if (OptimizerEnabled)
-            changedBlocks = OptimizeSection(blockData);
-        else if (BreakBlocksEnabled)
-            changedBlocks = BreakSection(blockData);
+        {
+            OnBlocksChanged(OptimizeSection(blockData));
+            return false;
+        }
+        else if (BreakBlockEnabled || BreakRegionEnabled)
+            OnBlocksChanged(BreakSection(blockData));
         else if (MoveToLayerEnabled || MoveRegionToLayerEnabled)
-            changedBlocks = MoveToLayer(blockData);
+            OnBlocksChanged(MoveToLayer(blockData));
 
-        OnBlocksChanged(changedBlocks.ToArray());
+        OnBlocksChanged(changedBlocks);
+
+        return true;
     }
 
     private IEnumerable<BlockData> BreakSection(BlockData blockData)
     {
-        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
-            .Where(a => a.Color != BlockData.EmptyColor)
-            .BreakToCells();
+        if (blockData.Color == BlockData.EmptyColor)
+            yield break;
+
+        var blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color);
 
         foreach (BlockData block in blocksToOptimize)
         {
-            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(block))
+            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(block.BreakToCells()))
                 yield return updatedBlock;
+
+            if(!BreakRegionEnabled)
+                yield break;
         }
     }
 
