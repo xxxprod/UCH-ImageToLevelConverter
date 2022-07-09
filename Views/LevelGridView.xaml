@@ -5,6 +5,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
              xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
+             xmlns:pt="http://propertytools.org/wpf"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800" 
              SizeChanged="OnSizeChanged"
@@ -20,6 +21,8 @@
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
                 <Label Content="Level Fullness: " FontWeight="Bold"/>
                 <Label Content="{Binding LevelFullness.Value}" />
+                <Label Content="Background: " FontWeight="Bold" Margin="20,0,0,0"/>
+                <pt:ColorPicker Name="ColorPicker" SelectedColor="{Binding BackgroundColor.Value}"/>
             </StackPanel>
             
             <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="0,0,20,0">
@@ -36,11 +39,11 @@
         
         <ScrollViewer Grid.Row="1" Name="ZoomBox" 
                       PreviewMouseDown="Canvas_OnPreviewMouseDown"
-                      PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel" 
-                      Background="DimGray" 
+                      PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel"
                       HorizontalScrollBarVisibility="Auto" 
-                      VerticalScrollBarVisibility="Auto">
-            <views:BlockGridView x:Name="BlockGridView" PreviewMouseMove="Canvas_OnPreviewMouseMove" />
+                      VerticalScrollBarVisibility="Auto"
+                      Background="Gray">
+            <views:BlockGridView x:Name="BlockGridView" PreviewMouseMove="Canvas_OnPreviewMouseMove" EmptyBlockColor="{Binding ElementName=ColorPicker, Path=SelectedColor}"/>
         </ScrollViewer>
     </Grid>
 </UserControl>

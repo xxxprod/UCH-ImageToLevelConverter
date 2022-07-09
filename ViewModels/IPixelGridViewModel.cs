@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Windows.Media;
 using UCH_ImageToLevelConverter.Model;
 using UCH_ImageToLevelConverter.Tools;
 
@@ -15,5 +16,6 @@ public interface IPixelGridViewModel
     event Action<IEnumerable<BlockData>> BlocksChanged;
     bool OnPixelGridAction(BlockData blockData);
     IntProperty LevelFullness { get; }
+    Property<Color> BackgroundColor { get; }
     void StartRecordingGridActions();
 }

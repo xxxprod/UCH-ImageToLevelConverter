@@ -102,13 +102,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> MoveToLayerEnabled { get; } = new();
     public Property<bool> MoveRegionToLayerEnabled { get; } = new();
 
-    public Property<Color> SelectedPaintColor { get; } = new(Colors.Black);
+    public Property<Color> SelectedPaintColor { get; } = new(Colors.Crimson);
 
     public Property<LayerViewModel> HighlightedLayer { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
 
     public Dictionary<Layer, LayerViewModel> Layers { get; }
     public IntProperty LevelFullness { get; } = new();
+    public Property<Color> BackgroundColor { get; } = new(Colors.LightSteelBlue);
 
     public BlockDataCollection Blocks
     {
@@ -221,7 +222,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void BreakAll()
     {
         PushUndoData(Blocks);
-        
+
         Blocks.ReplaceBlocks(Blocks.BreakToCells());
 
         OnBlocksChanged(Blocks);
@@ -283,8 +284,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         RandomBlockOptimizer optimizer = new(blocksToOptimize);
 
         foreach (BlockData optimizedBlock in optimizer.Optimize())
-        foreach (BlockData updatedBlock in Blocks.ReplaceBlock(optimizedBlock))
-            yield return updatedBlock;
+            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(optimizedBlock))
+                yield return updatedBlock;
     }
 
     private IEnumerable<BlockData> MoveToLayer(BlockData blockData)

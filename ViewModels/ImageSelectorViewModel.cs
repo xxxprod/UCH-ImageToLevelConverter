@@ -36,6 +36,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public Dictionary<Layer, LayerViewModel> Layers { get; }
     public BlockDataCollection Blocks { get; private set; }
     public IntProperty LevelFullness { get; } = new();
+    public Property<Color> BackgroundColor { get; } = new(Colors.LightSteelBlue);
 
     public event Action<IEnumerable<BlockData>> BlocksChanged;
 

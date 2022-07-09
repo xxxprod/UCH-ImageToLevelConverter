@@ -19,6 +19,7 @@ namespace UCH_ImageToLevelConverter
             {
                 levelEditorViewModel.LevelName.Value = Path.GetFileNameWithoutExtension(imageSelectorViewModel.ImageFileName);
                 levelEditorViewModel.Blocks = imageSelectorViewModel.Blocks;
+                levelEditorViewModel.BackgroundColor.Value = imageSelectorViewModel.BackgroundColor;
 
                 MainWindow.DataContext = levelEditorViewModel;
             };
@@ -28,6 +29,7 @@ namespace UCH_ImageToLevelConverter
                 var tmp = imageSelectorViewModel.OriginalImage.Value;
                 imageSelectorViewModel.OriginalImage.Value = null;
                 imageSelectorViewModel.OriginalImage.Value = tmp;
+                imageSelectorViewModel.BackgroundColor.Value = levelEditorViewModel.BackgroundColor;
                 MainWindow.DataContext = imageSelectorViewModel;
             };
 

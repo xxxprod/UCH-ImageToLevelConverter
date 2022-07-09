@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -39,6 +40,23 @@ public class BlockGridView : FrameworkElement
         }
     }
 
+    public static readonly DependencyProperty EmptyBlockColorProperty = DependencyProperty.Register(
+        "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color), FrameworkPropertyMetadataOptions.None, 
+            (o, _) => ((BlockGridView) o).OnEmptyColorChanged()));
+
+    private void OnEmptyColorChanged()
+    {
+        if (ViewModel == null)
+            return;
+        OnBlocksChanged(ViewModel.Blocks);
+    }
+
+    public Color EmptyBlockColor
+    {
+        get => (Color) GetValue(EmptyBlockColorProperty);
+        set => SetValue(EmptyBlockColorProperty, value);
+    }
+
     private void OnDataContextChanged(object sender, DependencyPropertyChangedEventArgs e)
     {
         if (ViewModel != null)
@@ -71,26 +89,30 @@ public class BlockGridView : FrameworkElement
                 if (!ViewModel.Layers[block.Layer].IsVisible)
                     continue;
 
-                Color color = block.Color;
-                if (ViewModel.HighlightLayer && ViewModel.HighlightedLayer.Value.Layer != block.Layer)
-                    color = Color.Multiply(color, 0.4f);
-
                 int x1 = block.Col * DefaultCellSize;
                 int y1 = block.Row * DefaultCellSize;
                 int x2 = x1 + DefaultCellSize;
                 int y2 = y1 + DefaultCellSize;
 
+                Color color = block.Color;
+                if (color == BlockData.EmptyColor)
+                    color = EmptyBlockColor;
+                else if (ViewModel.HighlightLayer && ViewModel.HighlightedLayer.Value.Layer != block.Layer)
+                    color = Color.Multiply(color, 0.4f);
+
+                Color borderColor = Color.Multiply(color, 0.8f);
+
                 _writeableBmp.FillRectangle(x1, y1, x2, y2, color);
 
                 if (block.Left == block.Col)
-                    _writeableBmp.DrawLine(x1, y1, x1, y2, BlockData.EmptyColor);
+                    _writeableBmp.DrawLine(x1, y1, x1, y2, borderColor);
                 if (block.Right == block.Col)
-                    _writeableBmp.DrawLine(x2, y1, x2, y2, BlockData.EmptyColor);
+                    _writeableBmp.DrawLine(x2, y1, x2, y2, borderColor);
 
                 if (block.Top == block.Row)
-                    _writeableBmp.DrawLine(x1, y1, x2, y1, BlockData.EmptyColor);
+                    _writeableBmp.DrawLine(x1, y1, x2, y1, borderColor);
                 if (block.Bottom == block.Row)
-                    _writeableBmp.DrawLine(x1, y2, x2, y2, BlockData.EmptyColor);
+                    _writeableBmp.DrawLine(x1, y2, x2, y2, borderColor);
             }
         }
 
