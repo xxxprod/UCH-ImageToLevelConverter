@@ -27,8 +27,8 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<BitmapSource> OriginalImage { get; } = new();
 
     public Property<string> ImageFileName { get; } = new();
-    public IntProperty Width { get; } = new(100, 0, 150);
-    public IntProperty Height { get; } = new(100, 0, 150);
+    public IntProperty Width { get; } = new(70, 0, 110);
+    public IntProperty Height { get; } = new(50, 0, 80);
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);
     public Property<bool> EditorEnabled { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
@@ -90,6 +90,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void UpdateLevelFullness()
     {
-        LevelFullness.Value = Blocks.Count(a => a.Color != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
+        LevelFullness.Value = Blocks == null
+            ? 0 : Blocks.GetDistinctNonEmptyBlocks().Count() * 5 + 10; // Add 10 for Start and Goal
     }
 }

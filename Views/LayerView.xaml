@@ -13,7 +13,7 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="180" />
             <ColumnDefinition Width="Auto" SharedSizeGroup="VisibilityColumn" />
         </Grid.ColumnDefinitions>
 
@@ -44,7 +44,7 @@
                             </Grid.Background>
                         </Grid>
 
-                        <Label Grid.Column="0" Content="{Binding Layer, Converter={tools:LayerConverter}}" FontWeight="{Binding Layer, Converter={tools:LayerFontWeightConverter}}"/>
+                        <Label Grid.Column="0" Content="{Binding Layer, Converter={tools:LayerToTextConverter}}" FontWeight="{Binding Layer, Converter={tools:LayerFontWeightConverter}}"/>
                         <CheckBox Grid.Column="1" IsChecked="{Binding IsVisible.Value}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Grid>
                 </DataTemplate>

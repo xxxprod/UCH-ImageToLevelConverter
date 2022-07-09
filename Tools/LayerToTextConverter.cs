@@ -6,7 +6,7 @@ using UCH_ImageToLevelConverter.Model;
 
 namespace UCH_ImageToLevelConverter.Tools;
 
-public class LayerConverter : MarkupExtension, IValueConverter
+public class LayerToTextConverter : MarkupExtension, IValueConverter
 {
     public override object ProvideValue(IServiceProvider serviceProvider) => this;
 

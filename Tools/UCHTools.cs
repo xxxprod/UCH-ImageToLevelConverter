@@ -14,7 +14,7 @@ public static class UCHTools
     public static string CreateSnapshotXml(this BlockDataCollection blocks)
     {
         var activeBlocks = blocks
-            .Where(a => a.Color != BlockData.EmptyColor)
+            .GetDistinctNonEmptyBlocks()
             .ToArray();
 
         var blockXmls = activeBlocks.Select<BlockData, object>((block, idx) => CreateBlockXml(blocks.Width, blocks.Height, block, idx)).ToArray();
@@ -220,6 +220,6 @@ public static class UCHTools
         return new XElement("block", attributes);
     }
 
-    private static string ToModBlockInfoString(this Layer layer) => 
+    private static string ToModBlockInfoString(this Layer layer) =>
         $"[ModBlock] mbi::{JsonConvert.SerializeObject(new { layer })}::mbi";
 }

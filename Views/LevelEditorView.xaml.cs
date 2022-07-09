@@ -1,10 +1,14 @@
-﻿using System.Windows;
+﻿using System.Text.RegularExpressions;
+using System.Windows;
+using System.Windows.Input;
 using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views
 {
     public partial class LevelEditorView
     {
+        private readonly Regex _filterNumericCharacterRegex = new("[^0-9]+", RegexOptions.Compiled);
+
         public LevelEditorView() => InitializeComponent();
 
         private void LayerExpander_OnCollapsed(object sender, RoutedEventArgs e)
@@ -28,5 +32,8 @@ namespace UCH_ImageToLevelConverter.Views
             vm.PaintBrushEnabled.Value = false;
             vm.FillBrushEnabled.Value = false;
         }
+        
+        private void OnPreviewTextInput(object sender, TextCompositionEventArgs e) => 
+            e.Handled = _filterNumericCharacterRegex.IsMatch(e.Text);
     }
 }

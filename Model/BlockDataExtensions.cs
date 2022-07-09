@@ -29,7 +29,7 @@ public static class BlockDataExtensions
         }
     }
     
-    public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock, Color color, double maxDistance = 20)
+    public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock, Color color, double colorSimilarityThreshold)
     {
         var queue = new Queue<BlockData>();
         var done = new HashSet<(int Top, int Bottom, int Left, int Right)>();
@@ -53,7 +53,7 @@ public static class BlockDataExtensions
                 if (!done.Add((neighbor.Top, neighbor.Bottom, neighbor.Left, neighbor.Right)))
                     continue;
 
-                if (GetColorSimilarity(neighbor.Color, color) <= maxDistance)
+                if (GetColorSimilarity(neighbor.Color, color) <= colorSimilarityThreshold)
                     queue.Enqueue(neighbor);
             }
         }

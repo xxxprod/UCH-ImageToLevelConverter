@@ -9,7 +9,6 @@ using System.Windows.Media.Imaging;
 using Microsoft.ML;
 using Microsoft.ML.Data;
 using Microsoft.ML.Trainers;
-using UCH_ImageToLevelConverter.Model;
 
 namespace UCH_ImageToLevelConverter.Tools;
 

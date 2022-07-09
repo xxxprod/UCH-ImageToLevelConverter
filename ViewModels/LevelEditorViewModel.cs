@@ -31,8 +31,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
         Property<bool>[] pixelGridActions = new[]
         {
-            PixelEraserEnabled,
-            MagicEraserEnabled,
+            EraseBlockEnabled,
+            EraseRegionEnabled,
             ColorPickingEnabled,
             PaintBrushEnabled,
             FillBrushEnabled,
@@ -92,8 +92,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> CanRedo { get; } = new();
 
     public Property<bool> ColorPickingEnabled { get; } = new();
-    public Property<bool> PixelEraserEnabled { get; } = new();
-    public Property<bool> MagicEraserEnabled { get; } = new();
+    public Property<bool> EraseBlockEnabled { get; } = new();
+    public Property<bool> EraseRegionEnabled { get; } = new();
     public Property<bool> PaintBrushEnabled { get; } = new();
     public Property<bool> FillBrushEnabled { get; } = new();
     public Property<bool> OptimizerEnabled { get; } = new();
@@ -103,6 +103,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> MoveRegionToLayerEnabled { get; } = new();
 
     public Property<Color> SelectedPaintColor { get; } = new(Colors.Crimson);
+    public Property<int> ColorSimilarityThreshold { get; } = new(30);
 
     public Property<LayerViewModel> HighlightedLayer { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
@@ -143,7 +144,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             if (blockData.Color != BlockData.EmptyColor)
                 SelectedPaintColor.Value = blockData.Color;
         }
-        else if (PixelEraserEnabled || MagicEraserEnabled)
+        else if (EraseBlockEnabled || EraseRegionEnabled)
         {
             OnBlocksChanged(EraseBlocks(blockData));
         }
@@ -253,7 +254,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             yield break;
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color);
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityThreshold);
 
         foreach (BlockData block in blocksToOptimize)
         {
@@ -270,7 +271,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        BlockData[] blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color)
+        BlockData[] blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityThreshold)
             .BreakToCells();
 
         return OptimizeBlocks(blocksToOptimize);
@@ -305,13 +306,13 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        return UpdateBlocks(blockData, !MagicEraserEnabled, block => Blocks.ClearBlock(block));
+        return UpdateBlocks(blockData, !EraseRegionEnabled, block => Blocks.ClearBlock(block));
     }
 
     private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
         Func<BlockData, IEnumerable<BlockData>> updateBlock)
     {
-        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color);
+        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color, ColorSimilarityThreshold);
 
         foreach (BlockData block in blocksWithSameColor)
         {
@@ -364,8 +365,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void UpdateLevelFullness()
     {
         LevelFullness.Value = Blocks == null
-            ? 0
-            : Blocks.Count(a => a.Color != BlockData.EmptyColor) * 5 + 10; // Add 10 for Start and Goal
+            ? 0 : Blocks.GetDistinctNonEmptyBlocks().Count() * 5 + 10; // Add 10 for Start and Goal
     }
 
     private void PushUndoData(IEnumerable<BlockData> undoData)

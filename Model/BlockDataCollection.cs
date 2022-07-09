@@ -142,4 +142,12 @@ public class BlockDataCollection : IEnumerable<BlockData>
             block.Left, block.Right,
             newLayer, newColor));
     }
+
+    public IEnumerable<BlockData> GetDistinctNonEmptyBlocks()
+    {
+        return this
+            .Where(a => a.Color != BlockData.EmptyColor)
+            .GroupBy(a => (a.Top, a.Bottom, a.Left, a.Right))
+            .Select(a => a.First());
+    }
 }

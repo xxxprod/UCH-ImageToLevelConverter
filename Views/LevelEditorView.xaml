@@ -24,6 +24,12 @@
                 <Setter Property="VerticalContentAlignment" Value="Center" />
             </Style.Setters>
         </Style>
+        <Style x:Key="NumberTextBoxStyle" BasedOn="{StaticResource TextBoxStyle}"  TargetType="TextBox">
+            <Style.Setters>
+                <Setter Property="HorizontalContentAlignment" Value="Right" />
+                <EventSetter Event="PreviewTextInput" Handler="OnPreviewTextInput" />
+            </Style.Setters>
+        </Style>
     </UserControl.Resources>
 
     <Grid>
@@ -59,17 +65,22 @@
 
                 <UniformGrid Columns="2" VerticalAlignment="Top">
 
+                    <Label Content="Color Similarity:" />
+                    <TextBox Text="{Binding ColorSimilarityThreshold.Value, UpdateSourceTrigger=PropertyChanged}" 
+                             Style="{StaticResource NumberTextBoxStyle}" HorizontalAlignment="Left" MinWidth="70"
+                             ToolTip="Defines how strict the Region tools are. 0=only same color"/>
+
                     <Label />
                     <Label />
 
-                    <Label Content="Pixel Eraser" />
-                    <CheckBox IsChecked="{Binding PixelEraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Label Content="Erase Block" />
+                    <CheckBox IsChecked="{Binding EraseBlockEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
                     </CheckBox>
-                    <Label Content="Magic Color Eraser" />
-                    <CheckBox IsChecked="{Binding MagicEraserEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Label Content="Erase Region" />
+                    <CheckBox IsChecked="{Binding EraseRegionEnabled.Value}" HorizontalAlignment="Center" VerticalAlignment="Center">
                         <CheckBox.Content>
                             <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
                         </CheckBox.Content>
