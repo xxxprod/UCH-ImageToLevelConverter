@@ -5,7 +5,7 @@ using UCH_ImageToLevelConverter.Model;
 
 namespace UCH_ImageToLevelConverter.Optimizer;
 
-class RandomBlockOptimizer : BlockOptimizerBase
+internal class RandomBlockOptimizer : BlockOptimizerBase
 {
     private readonly Random _ran = new();
 
@@ -13,23 +13,24 @@ class RandomBlockOptimizer : BlockOptimizerBase
     {
     }
 
-    public override IEnumerable<BlockData> Optimize()
+    public override IEnumerable<BlockData> Optimize(double colorSimilarityThreshold)
     {
-        var blocksToOptimize = new Stack<BlockData>(GetAllBlocks().OrderBy(a=>_ran.Next()));
+        Stack<BlockData> blocksToOptimize = new(GetAllBlocks().OrderBy(a => _ran.Next()));
 
         while (blocksToOptimize.Any())
         {
-            var nextBlock = blocksToOptimize.Pop();
+            BlockData nextBlock = blocksToOptimize.Pop();
 
-            foreach (var (blockWidth, blockHeight) in BlockData.BlockSizes)
+            foreach ((int blockWidth, int blockHeight) in BlockData.BlockSizes)
             {
-                var foundHole = false;
-                for (var deltaRow = 0; deltaRow < blockHeight && !foundHole; deltaRow++)
-                    for (var deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
+                bool foundHole = false;
+                for (int deltaRow = 0; deltaRow < blockHeight && !foundHole; deltaRow++)
+                    for (int deltaCol = 0; deltaCol < blockWidth && !foundHole; deltaCol++)
                     {
-                        var row = nextBlock.Row + deltaRow - RowOffset;
-                        var col = nextBlock.Col + deltaCol - ColOffset;
-                        if (row >= Height || col >= Width || Blocks[row, col] == null)
+                        int row = nextBlock.Row + deltaRow - RowOffset;
+                        int col = nextBlock.Col + deltaCol - ColOffset;
+                        if (row >= Height || col >= Width || Blocks[row, col] == null ||
+                            !BlockDataExtensions.AreColorsSimilar(nextBlock.Color, Blocks[row, col].Value.Color, colorSimilarityThreshold))
                             foundHole = true;
                     }
 
@@ -39,11 +40,11 @@ class RandomBlockOptimizer : BlockOptimizerBase
                         nextBlock.Top, nextBlock.Top + blockHeight - 1, nextBlock.Left, nextBlock.Left + blockWidth - 1,
                         nextBlock.Layer, nextBlock.Color);
 
-                    for (var deltaRow = 0; deltaRow < blockHeight; deltaRow++)
-                        for (var deltaCol = 0; deltaCol < blockWidth; deltaCol++)
+                    for (int deltaRow = 0; deltaRow < blockHeight; deltaRow++)
+                        for (int deltaCol = 0; deltaCol < blockWidth; deltaCol++)
                         {
-                            var row = nextBlock.Row + deltaRow - RowOffset;
-                            var col = nextBlock.Col + deltaCol - ColOffset;
+                            int row = nextBlock.Row + deltaRow - RowOffset;
+                            int col = nextBlock.Col + deltaCol - ColOffset;
                             Blocks[row, col] = null;
                         }
 

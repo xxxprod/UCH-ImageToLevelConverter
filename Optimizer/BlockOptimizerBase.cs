@@ -46,5 +46,5 @@ public abstract class BlockOptimizerBase
         }
     }
 
-    public abstract IEnumerable<BlockData> Optimize();
+    public abstract IEnumerable<BlockData> Optimize(double colorSimilarityThreshold);
 }

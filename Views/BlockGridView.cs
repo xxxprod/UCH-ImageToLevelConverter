@@ -100,7 +100,7 @@ public class BlockGridView : FrameworkElement
                 else if (ViewModel.HighlightLayer && ViewModel.HighlightedLayer.Value.Layer != block.Layer)
                     color = Color.Multiply(color, 0.4f);
 
-                Color borderColor = Color.Multiply(color, 0.8f);
+                Color borderColor = Color.Multiply(color, 0.6f);
 
                 _writeableBmp.FillRectangle(x1, y1, x2, y2, color);
 

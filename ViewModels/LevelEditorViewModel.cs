@@ -232,21 +232,10 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void OptimizeAll()
     {
         PushUndoData(Blocks);
+        
+        RandomBlockOptimizer optimizer = new(Blocks.ToArray());
 
-        Dictionary<Color, BlockData[]> blocksByColor = Blocks
-            .Where(a => a.Color != BlockData.EmptyColor)
-            .GroupBy(a => a.Color)
-            .ToDictionary(
-                a => a.Key,
-                a => a.BreakToCells()
-            );
-
-        foreach ((var _, BlockData[] blocks) in blocksByColor)
-        {
-            BlockData[] _ = OptimizeBlocks(blocks).ToArray();
-        }
-
-        OnBlocksChanged(Blocks);
+        OnBlocksChanged(Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityThreshold)));
     }
 
     private IEnumerable<BlockData> BreakSection(BlockData blockData)
@@ -271,22 +260,11 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        BlockData[] blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityThreshold)
-            .BreakToCells();
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityThreshold);
+        
+        RandomBlockOptimizer optimizer = new(blocksToOptimize.ToArray());
 
-        return OptimizeBlocks(blocksToOptimize);
-    }
-
-    private IEnumerable<BlockData> OptimizeBlocks(ICollection<BlockData> blocksToOptimize)
-    {
-        if (blocksToOptimize.Count <= 1)
-            yield break;
-
-        RandomBlockOptimizer optimizer = new(blocksToOptimize);
-
-        foreach (BlockData optimizedBlock in optimizer.Optimize())
-            foreach (BlockData updatedBlock in Blocks.ReplaceBlock(optimizedBlock))
-                yield return updatedBlock;
+        return Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityThreshold));
     }
 
     private IEnumerable<BlockData> MoveToLayer(BlockData blockData)
