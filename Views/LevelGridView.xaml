@@ -15,10 +15,24 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal">
-            <Label Content="Level Fullness: " FontWeight="Bold"/>
-            <Label Content="{Binding LevelFullness.Value}" />
-        </StackPanel>
+        <DockPanel LastChildFill="True">
+
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Left">
+                <Label Content="Level Fullness: " FontWeight="Bold"/>
+                <Label Content="{Binding LevelFullness.Value}" />
+            </StackPanel>
+            
+            <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="0,0,20,0">
+                <Label Content="Zoom: " FontWeight="Bold"/>
+                <Button Content="-" VerticalAlignment="Center" Padding="6,0,6,0" Click="ZoomOutClicked"/>
+                <Label Name="ZoomLabel" Content="100%" />
+                <Button Content="+" VerticalAlignment="Center" Padding="6,0,6,0" Click="ZoomInClicked"/>
+            </StackPanel>
+
+            <Grid></Grid>
+
+        </DockPanel>
+
         
         <ScrollViewer Grid.Row="1" Name="ZoomBox" 
                       PreviewMouseDown="Canvas_OnPreviewMouseDown"
