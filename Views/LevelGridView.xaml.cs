@@ -1,9 +1,7 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using UCH_ImageToLevelConverter.Model;
 
 namespace UCH_ImageToLevelConverter.Views;
@@ -11,7 +9,7 @@ namespace UCH_ImageToLevelConverter.Views;
 public partial class LevelGridView
 {
     private const double MinZoomScale = 1;
-    private const double MaxZoomScale = 10;
+    private const double MaxZoomScale = 50;
 
     private bool _dragEnabled;
     private Point _lastMousePosition;
@@ -28,7 +26,10 @@ public partial class LevelGridView
         if (!Keyboard.IsKeyDown(Key.LeftCtrl))
             return;
 
-        ZoomGrid(e.Delta > 0, e.GetPosition(BlockGridView));
+        Point position = e.GetPosition(BlockGridView);
+        Point center = new(position.X / BlockGridView.ActualWidth, position.Y / BlockGridView.ActualHeight);
+
+        ZoomGrid(e.Delta > 0, center);
 
         e.Handled = true;
     }
@@ -50,7 +51,7 @@ public partial class LevelGridView
         Point newPos = e.GetPosition(ZoomBox);
         Vector delta = newPos - _lastMousePosition;
 
-        if (delta == new Vector())
+        if (Math.Abs(delta.Length) < 1)
             return;
 
         if (_dragEnabled)
@@ -65,20 +66,18 @@ public partial class LevelGridView
     private void ZoomInClicked(object sender, RoutedEventArgs e) => ZoomGrid(true);
     private void ZoomOutClicked(object sender, RoutedEventArgs e) => ZoomGrid(false);
     private void OnSizeChanged(object sender, SizeChangedEventArgs e) => UpdateCanvasSize();
+    private void BlockGridView_OnBlockDataChanged() => UpdateCanvasSize();
 
     private void UpdateCanvasSize()
     {
         BlockDataCollection blocks = BlockGridView.ViewModel.Blocks;
 
-        int gridWidth = blocks.Width * BlockGridView.DefaultCellSize;
-        int gridHeight = blocks.Height * BlockGridView.DefaultCellSize;
-
         double zoomBoxHeight = ZoomBox.ActualHeight - 3;
         double zoomBoxWidth = ZoomBox.ActualWidth - 3;
 
         _sizeScale = blocks.Height / (double)blocks.Width < zoomBoxHeight / zoomBoxWidth
-            ? zoomBoxWidth / gridWidth
-            : zoomBoxHeight / gridHeight;
+            ? zoomBoxWidth / blocks.Width
+            : zoomBoxHeight / blocks.Height;
 
         UpdateCanvasScale();
     }
@@ -86,34 +85,36 @@ public partial class LevelGridView
     private void ZoomGrid(bool zoomIn, Point center = default)
     {
         if (center == default)
-            center = new Point(ZoomBox.ActualWidth / 2, ZoomBox.ActualHeight / 2);
+            center = new Point(0.5, 0.5);
 
         double zoomFactor = zoomIn ? 1.1 : 1 / 1.1;
 
         _zoomScale *= zoomFactor;
-        if (_zoomScale < MinZoomScale)
+        switch (_zoomScale)
         {
-            _zoomScale = MinZoomScale;
-            zoomFactor = 1;
-        }
-        else if (_zoomScale > MaxZoomScale)
-        {
-            _zoomScale = MaxZoomScale;
-            zoomFactor = 1;
+            case < MinZoomScale:
+                _zoomScale = MinZoomScale;
+                zoomFactor = 1;
+                break;
+            case > MaxZoomScale:
+                _zoomScale = MaxZoomScale;
+                zoomFactor = 1;
+                break;
         }
 
         UpdateCanvasScale();
 
-        double scrollDeltaX = center.X - center.X * zoomFactor;
-        double scrollDeltaY = center.Y - center.Y * zoomFactor;
+        double scrollDeltaX = center.X * zoomFactor - center.X;
+        double scrollDeltaY = center.Y * zoomFactor - center.Y;
 
-        ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset - scrollDeltaY);
-        ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset - scrollDeltaX);
+        ZoomBox.ScrollToVerticalOffset(ZoomBox.VerticalOffset + scrollDeltaY * ZoomBox.ExtentHeight);
+        ZoomBox.ScrollToHorizontalOffset(ZoomBox.HorizontalOffset + scrollDeltaX * ZoomBox.ExtentWidth);
     }
 
     private void UpdateCanvasScale()
     {
-        BlockGridView.Scale = _sizeScale * _zoomScale;
+        double scale = _sizeScale * _zoomScale;
+        BlockGridView.LayoutTransform = new ScaleTransform(scale, scale);
         ZoomLabel.Content = $"{_zoomScale * 100:0} %";
     }
 }

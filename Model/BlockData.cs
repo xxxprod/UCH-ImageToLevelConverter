@@ -1,10 +1,8 @@
-using System;
 using System.Windows.Media;
-using UCH_ImageToLevelConverter.Tools;
 
 namespace UCH_ImageToLevelConverter.Model;
 
-public struct BlockData
+public readonly struct BlockData
 {
     public static readonly (int Width, int Height)[] BlockSizes =
     {
@@ -55,34 +53,4 @@ public struct BlockData
     public int Width => Right - Left + 1;
     public int Height => Bottom - Top + 1;
     public int Cells => Height * Width;
-
-
-    //public void Update(Color color, Layer layer)
-    //{
-    //    Color = color;
-    //    Layer = layer;
-    //}
-
-    //public void Update(int top, int bottom, int left, int right, Color color, Layer layer)
-    //{
-    //    Top = top;
-    //    Bottom = bottom;
-    //    Left = left;
-    //    Right = right;
-    //    Update(color, layer);
-    //}
-
-    //public void Clear()
-    //{
-    //    Update(Row, Row, Col, Col, EmptyColor, Layer);
-    //}
-    public BlockData CopyCleared()
-    {
-        return new BlockData(Row, Col, Top, Bottom, Left, Right, Layer.Default, EmptyColor);
-    }
-
-    public BlockData Copy(Color color, Layer layer)
-    {
-        return new BlockData(Row, Col, Top, Bottom, Left, Right, layer, color);
-    }
 }

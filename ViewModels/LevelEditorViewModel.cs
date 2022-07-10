@@ -338,7 +338,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     protected virtual void OnBlocksChanged(IEnumerable<BlockData> changedBlocks)
     {
         BlocksChanged?.Invoke(changedBlocks);
-        UpdateLevelFullness();
+        //UpdateLevelFullness();
     }
 
     private void UpdateLevelFullness()

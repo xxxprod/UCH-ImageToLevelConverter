@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -13,13 +14,12 @@ namespace UCH_ImageToLevelConverter.Views;
 
 public class BlockGridView : FrameworkElement
 {
-    public const int DefaultCellSize = 15;
     private readonly DrawingGroup _backingStore = new();
 
     private bool _recordingGridActions;
     private double _scale = 1;
 
-    private WriteableBitmap _writeableBmp;
+    public event Action BlockDataChanged;
 
     [DllImport("User32.dll")]
     private static extern bool SetCursorPos(int X, int Y);
@@ -27,22 +27,10 @@ public class BlockGridView : FrameworkElement
     public BlockGridView()
     {
         DataContextChanged += OnDataContextChanged;
+        RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.NearestNeighbor);
     }
-
-    public double ScaledCellSize => DefaultCellSize * _scale;
 
     public IPixelGridViewModel ViewModel { get; private set; }
-
-    public double Scale
-    {
-        get => _scale;
-        set
-        {
-            _scale = value;
-            OnBlocksChanged(ViewModel.Blocks);
-            InvalidateMeasure();
-        }
-    }
 
     public static readonly DependencyProperty EmptyBlockColorProperty = DependencyProperty.Register(
         "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color), FrameworkPropertyMetadataOptions.None,
@@ -81,55 +69,68 @@ public class BlockGridView : FrameworkElement
     private void OnBlocksChanged(IEnumerable<BlockData> changedBlocks)
     {
         if (changedBlocks is BlockDataCollection blocks)
-            _writeableBmp = BitmapFactory.New(blocks.Width * DefaultCellSize, blocks.Height * DefaultCellSize);
-
-        DrawBlocks(changedBlocks);
-    }
-
-    private void DrawBlocks(IEnumerable<BlockData> blocks)
-    {
-        using DrawingContext drawingContext = _backingStore.Open();
-        using (_writeableBmp.GetBitmapContext())
         {
-            foreach (BlockData block in blocks)
+            WriteableBitmap bitmap = BitmapFactory.New(blocks.Width, blocks.Height);
+
+            using (bitmap.GetBitmapContext())
             {
-                if (!ViewModel.Layers[block.Layer].IsVisible)
-                    continue;
-
-                int x1 = block.Col * DefaultCellSize;
-                int y1 = block.Row * DefaultCellSize;
-                int x2 = x1 + DefaultCellSize;
-                int y2 = y1 + DefaultCellSize;
-
-                Color color = block.Color;
-                if (color == BlockData.EmptyColor)
-                    color = EmptyBlockColor;
-                else if (ViewModel.HighlightLayer && ViewModel.HighlightedLayer.Value.Layer != block.Layer)
-                    color = Color.Multiply(color, 0.4f);
-
-                Color borderColor = Color.Multiply(color, 0.6f);
-
-                _writeableBmp.FillRectangle(x1, y1, x2, y2, color);
-
-                if (block.Left == block.Col)
-                    _writeableBmp.DrawLine(x1, y1, x1, y2, borderColor);
-                if (block.Right == block.Col)
-                    _writeableBmp.DrawLine(x2, y1, x2, y2, borderColor);
-
-                if (block.Top == block.Row)
-                    _writeableBmp.DrawLine(x1, y1, x2, y1, borderColor);
-                if (block.Bottom == block.Row)
-                    _writeableBmp.DrawLine(x1, y2, x2, y2, borderColor);
+                foreach (BlockData block in changedBlocks)
+                {
+                    bitmap.SetPixel(block.Col, block.Row, GetColor(block));
+                }
             }
-        }
 
-        if (_scale >= 1)
-            drawingContext.DrawImage(_writeableBmp, new Rect(new Size(_writeableBmp.PixelWidth * _scale, _writeableBmp.PixelHeight * _scale)));
+            using DrawingContext drawingContext = _backingStore.Open();
+            drawingContext.DrawImage(bitmap, new Rect(new Size(bitmap.PixelWidth, bitmap.PixelHeight)));
+
+            BlockDataChanged?.Invoke();
+        }
         else
         {
-            TransformedBitmap scaledBitmap = new(_writeableBmp.Clone(), new ScaleTransform(_scale, _scale));
-            drawingContext.DrawImage(scaledBitmap, new Rect(new Size(scaledBitmap.PixelWidth, scaledBitmap.PixelHeight)));
+            if (changedBlocks != null)
+            {
+                int minRow = int.MaxValue;
+                int maxRow = int.MinValue;
+                int minCol = int.MaxValue;
+                int maxCol = int.MinValue;
+
+                List<BlockData> copiedBlocks = new();
+
+                foreach (BlockData block in changedBlocks)
+                {
+                    minRow = Math.Min(minRow, block.Row);
+                    maxRow = Math.Max(maxRow, block.Row);
+                    minCol = Math.Min(minCol, block.Col);
+                    maxCol = Math.Max(maxCol, block.Col);
+                    copiedBlocks.Add(block);
+                }
+
+                WriteableBitmap bitmap = BitmapFactory.New(maxCol - minCol + 1, maxRow - minRow + 1);
+
+                using (bitmap.GetBitmapContext())
+                {
+                    foreach (BlockData block in copiedBlocks)
+                    {
+                        bitmap.SetPixel(block.Col - minCol, block.Row - minRow, GetColor(block));
+                    }
+                }
+
+                using DrawingContext drawingContext = _backingStore.Append();
+                drawingContext.DrawImage(bitmap, new Rect(new Point(minCol, minRow), new Size(bitmap.PixelWidth, bitmap.PixelHeight)));
+            }
         }
+    }
+
+    private Color GetColor(BlockData block)
+    {
+        if (!ViewModel.Layers[block.Layer].IsVisible)
+            return EmptyBlockColor;
+        Color color = block.Color;
+        if (color == BlockData.EmptyColor)
+            color = EmptyBlockColor;
+        else if (ViewModel.HighlightLayer && ViewModel.HighlightedLayer.Value.Layer != block.Layer)
+            color = Color.Multiply(color, 0.4f);
+        return color;
     }
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
@@ -167,13 +168,12 @@ public class BlockGridView : FrameworkElement
 
         int deltaRow = blockData.Value.Row - _lastRecordedBlock!.Value.Row;
         int deltaCol = blockData.Value.Col - _lastRecordedBlock!.Value.Col;
-            
+
         if (deltaRow == 0 && deltaCol == 0)
             return;
 
         if (ViewModel.SnapToEdgesEnabled)
         {
-
             _snapToEdgeOrientation ??= Math.Abs(deltaRow) > Math.Abs(deltaCol)
                 ? Orientation.Vertical
                 : Orientation.Horizontal;
@@ -196,7 +196,7 @@ public class BlockGridView : FrameworkElement
 
             blockData = ViewModel.Blocks[row, col];
 
-            Point snappedPoint = new((col + 0.5) * ScaledCellSize, (row + 0.5) * ScaledCellSize);
+            Point snappedPoint = new(col + 0.5, row + 0.5);
             Point screenPosition = PointToScreen(snappedPoint);
             SetCursorPos((int)screenPosition.X, (int)screenPosition.Y);
         }
@@ -209,8 +209,8 @@ public class BlockGridView : FrameworkElement
     protected override Size MeasureOverride(Size availableSize)
     {
         return new Size(
-            ViewModel.Blocks.Width * ScaledCellSize,
-            ViewModel.Blocks.Height * ScaledCellSize
+            ViewModel.Blocks.Width,
+            ViewModel.Blocks.Height
         );
     }
 
@@ -221,8 +221,8 @@ public class BlockGridView : FrameworkElement
     {
         Point position = e.GetPosition(this);
 
-        int row = (int)(position.Y / ScaledCellSize);
-        int col = (int)(position.X / ScaledCellSize);
+        int row = (int)position.Y;
+        int col = (int)position.X;
 
         return ViewModel.Blocks.IsOutOfBounds(row, col) ? null : ViewModel.Blocks[row, col];
     }
