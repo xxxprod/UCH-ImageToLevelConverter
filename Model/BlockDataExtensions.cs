@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Media;
+using System.Windows.Media.Media3D;
 
 namespace UCH_ImageToLevelConverter.Model;
 
@@ -18,12 +19,12 @@ public static class BlockDataExtensions
             yield return block;
         else
             for (int row = block.Top; row <= block.Bottom; row++)
-            for (int col = block.Left; col <= block.Right; col++)
-                yield return new BlockData(row, col, block.Layer, block.Color);
+                for (int col = block.Left; col <= block.Right; col++)
+                    yield return new BlockData(row, col, block.Layer, block.Color);
     }
 
     public static IEnumerable<BlockData> FindBlocksWithSameColor(this BlockDataCollection blocks, BlockData startBlock,
-        Color color, double colorSimilarityThreshold)
+        Color color, int minSimilarity)
     {
         Queue<BlockData> queue = new();
         HashSet<(int Top, int Bottom, int Left, int Right)> done = new();
@@ -47,23 +48,29 @@ public static class BlockDataExtensions
                 if (!done.Add((neighbor.Top, neighbor.Bottom, neighbor.Left, neighbor.Right)))
                     continue;
 
-                if (AreColorsSimilar(neighbor.Color, color, colorSimilarityThreshold))
+                if (AreColorsSimilar(neighbor.Color, color, minSimilarity))
                     queue.Enqueue(neighbor);
             }
         }
     }
 
-    public static bool AreColorsSimilar(Color a, Color b, double threshold)
+    public static bool AreColorsSimilar(Color a, Color b, int minSimilarity)
     {
         if ((a == BlockData.EmptyColor) ^ (b == BlockData.EmptyColor))
             return false;
+        
+        double maxSquaredError = Math.Pow((100 - minSimilarity) / 100.0, 2);
+        double colorDistance = GetNormalizedDistance(a, b);
 
-        double similarity = Math.Sqrt(
-            Math.Pow(a.R - b.R, 2) +
-            Math.Pow(a.G - b.G, 2) +
-            Math.Pow(a.B - b.B, 2)
-        );
+        return colorDistance < maxSquaredError;
+    }
 
-        return similarity < threshold;
+    private static double GetNormalizedDistance(Color a, Color b)
+    {
+        Vector3D a1 = new(a.R, a.G, a.B);
+        Vector3D b1 = new(b.R, b.G, b.B);
+        Vector3D distanceVector = a1 - b1;
+        
+        return distanceVector.Length / 441.67295593006372; // sqrt(255^2 * 3)
     }
 }

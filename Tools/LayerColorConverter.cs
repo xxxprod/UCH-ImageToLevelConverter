@@ -16,17 +16,15 @@ public class LayerColorConverter : MarkupExtension, IValueConverter
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value == null)
+        if (value is not Layer layer)
             return null;
 
-        var layer = (Layer)value;
-
-        if (layer == 0)
-            return new Color();
-
-        if (layer < 0)
-            return Color.FromArgb((byte)(50 - (int)layer * 20), 255, 0, 0);
-        return Color.FromArgb((byte)(50 + (int)layer * 20), 0, 255, 0);
+        return layer switch
+        {
+            0 => Color.FromRgb(0, 0, 255),
+            < 0 => Color.FromRgb(255, 0, 0),
+            _ => Color.FromRgb(0, 255, 0)
+        };
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)

@@ -104,7 +104,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<bool> SnapToEdgesEnabled { get; } = new();
 
     public Property<Color> SelectedPaintColor { get; } = new(Colors.Crimson);
-    public Property<int> ColorSimilarityThreshold { get; } = new(30);
+    public IntProperty ColorSimilarityPercentage { get; } = new(80, 0, 100);
 
     public Property<LayerViewModel> HighlightedLayer { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
@@ -233,10 +233,10 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void OptimizeAll()
     {
         PushUndoData(Blocks);
-        
+
         RandomBlockOptimizer optimizer = new(Blocks.ToArray());
 
-        OnBlocksChanged(Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityThreshold)));
+        OnBlocksChanged(Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityPercentage)));
     }
 
     private IEnumerable<BlockData> BreakSection(BlockData blockData)
@@ -244,7 +244,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             yield break;
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityThreshold);
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityPercentage);
 
         foreach (BlockData block in blocksToOptimize)
         {
@@ -261,11 +261,11 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityThreshold);
-        
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityPercentage);
+
         RandomBlockOptimizer optimizer = new(blocksToOptimize.ToArray());
 
-        return Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityThreshold));
+        return Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityPercentage));
     }
 
     private IEnumerable<BlockData> MoveToLayer(BlockData blockData)
@@ -291,7 +291,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
         Func<BlockData, IEnumerable<BlockData>> updateBlock)
     {
-        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color, ColorSimilarityThreshold);
+        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color, ColorSimilarityPercentage);
 
         foreach (BlockData block in blocksWithSameColor)
         {

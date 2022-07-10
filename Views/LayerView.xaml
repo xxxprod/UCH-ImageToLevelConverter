@@ -24,31 +24,55 @@
                      ItemsSource="{Binding Layers.Values}"
                      SelectedItem="{Binding HighlightedLayer.Value}">
 
+            <ListBox.Template>
+                <ControlTemplate TargetType="ListBox">
+                    <ItemsPresenter />
+                </ControlTemplate>
+            </ListBox.Template>
+
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
-                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <RadioButton IsChecked="{Binding RelativeSource={RelativeSource AncestorType=ListBoxItem}, Path=IsSelected}" GroupName="LayerSelectionGroup">
+                                    <RadioButton.Template>
+                                        <ControlTemplate TargetType="RadioButton">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*"/>
+                                                    <ColumnDefinition SharedSizeGroup="VisibilityColumn"/>
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.ColumnSpan="2" Opacity="0.15" Name="BackgroundControl">
+                                                    <Border.Background>
+                                                        <SolidColorBrush Color="{Binding Layer, Converter={tools:LayerColorConverter}}" />
+                                                    </Border.Background>
+                                                </Border>
+
+                                                <Border Grid.ColumnSpan="2" Grid.Column="0" Name="BorderControl" BorderBrush="DimGray" />
+
+                                                <Label Name="LabelControl"  Grid.Column="0" Content="{Binding Layer, Converter={tools:LayerToTextConverter}}" />
+                                                <CheckBox Grid.Column="1" IsChecked="{Binding IsVisible.Value}" 
+                                                          HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                            </Grid>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsChecked" Value="True">
+                                                    <Trigger.Setters>
+                                                        <Setter TargetName="BackgroundControl" Property="Opacity" Value="0.3" />
+                                                        <Setter TargetName="BorderControl" Property="BorderThickness" Value="1" />
+                                                        <Setter TargetName="LabelControl" Property="FontWeight" Value="Bold" />
+                                                    </Trigger.Setters>
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </RadioButton.Template>
+                                </RadioButton>
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
                 </Style>
             </ListBox.ItemContainerStyle>
-
-            <ListBox.ItemTemplate>
-                <DataTemplate DataType="{x:Type viewModels:LayerViewModel}">
-                    <Grid>
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition SharedSizeGroup="VisibilityColumn"/>
-                        </Grid.ColumnDefinitions>
-
-                        <Grid Grid.ColumnSpan="2" Opacity="0.2">
-                            <Grid.Background>
-                                <SolidColorBrush Color="{Binding Layer, Converter={tools:LayerColorConverter}}"></SolidColorBrush>
-                            </Grid.Background>
-                        </Grid>
-
-                        <Label Grid.Column="0" Content="{Binding Layer, Converter={tools:LayerToTextConverter}}" FontWeight="{Binding Layer, Converter={tools:LayerFontWeightConverter}}"/>
-                        <CheckBox Grid.Column="1" IsChecked="{Binding IsVisible.Value}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                    </Grid>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
         </ListBox>
     </Grid>
 </UserControl>

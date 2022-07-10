@@ -13,7 +13,7 @@ internal class RandomBlockOptimizer : BlockOptimizerBase
     {
     }
 
-    public override IEnumerable<BlockData> Optimize(double colorSimilarityThreshold)
+    public override IEnumerable<BlockData> Optimize(int minSimilarity)
     {
         Stack<BlockData> blocksToOptimize = new(GetAllBlocks().OrderBy(a => _ran.Next()));
 
@@ -30,7 +30,7 @@ internal class RandomBlockOptimizer : BlockOptimizerBase
                         int row = nextBlock.Row + deltaRow - RowOffset;
                         int col = nextBlock.Col + deltaCol - ColOffset;
                         if (row >= Height || col >= Width || Blocks[row, col] == null ||
-                            !BlockDataExtensions.AreColorsSimilar(nextBlock.Color, Blocks[row, col].Value.Color, colorSimilarityThreshold))
+                            !BlockDataExtensions.AreColorsSimilar(nextBlock.Color, Blocks[row, col].Value.Color, minSimilarity))
                             foundHole = true;
                     }
 

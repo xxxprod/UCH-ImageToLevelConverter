@@ -1,4 +1,6 @@
-﻿namespace UCH_ImageToLevelConverter.Views
+﻿using System.Windows.Input;
+
+namespace UCH_ImageToLevelConverter.Views
 {
     public partial class LayerView
     {

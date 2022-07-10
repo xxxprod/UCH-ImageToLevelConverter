@@ -12,12 +12,9 @@ public class LayerToTextConverter : MarkupExtension, IValueConverter
 
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        if (value == null)
-            return null;
-
-        var layer = (Layer)value;
-
-        return $"{layer} ({(int) layer})";
+        return value is not Layer layer 
+            ? null 
+            : $"{layer} ({(int) layer})";
     }
 
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
