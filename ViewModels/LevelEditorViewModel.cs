@@ -201,6 +201,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void RedoAction()
     {
+        if (!_redoHistory.Any())
+            return;
         _undoHistory.Push(Blocks.ToArray());
 
         Blocks.ReplaceBlocks(_redoHistory.Pop());
@@ -212,6 +214,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
     private void UndoAction()
     {
+        if (!_undoHistory.Any())
+            return;
         _redoHistory.Push(Blocks.ToArray());
 
         Blocks.ReplaceBlocks(_undoHistory.Pop());

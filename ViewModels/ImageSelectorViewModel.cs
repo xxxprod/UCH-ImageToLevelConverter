@@ -27,8 +27,8 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     public Property<BitmapSource> OriginalImage { get; } = new();
 
     public Property<string> ImageFileName { get; } = new();
-    public IntProperty Width { get; } = new(70, 0, 1000);
-    public IntProperty Height { get; } = new(50, 0, 1000);
+    public IntProperty Width { get; } = new(70, 0, 200);
+    public IntProperty Height { get; } = new(50, 0, 200);
     public NullableIntProperty MaxColors { get; } = new(null, null, 256);
     public Property<bool> EditorEnabled { get; } = new();
     public Property<bool> HighlightLayer { get; } = new();
