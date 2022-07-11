@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -17,7 +16,6 @@ public class BlockGridView : FrameworkElement
     private readonly DrawingGroup _backingStore = new();
 
     private bool _recordingGridActions;
-    private double _scale = 1;
 
     public event Action BlockDataChanged;
 
@@ -38,6 +36,7 @@ public class BlockGridView : FrameworkElement
 
     private BlockData? _lastRecordedBlock;
     private Orientation? _snapToEdgeOrientation;
+    private WriteableBitmap _bitmap;
 
     private void OnEmptyColorChanged()
     {
@@ -62,61 +61,30 @@ public class BlockGridView : FrameworkElement
             return;
 
         ViewModel.BlocksChanged += OnBlocksChanged;
-
-        OnBlocksChanged(ViewModel.Blocks);
     }
 
     private void OnBlocksChanged(IEnumerable<BlockData> changedBlocks)
     {
         if (changedBlocks is BlockDataCollection blocks)
         {
-            WriteableBitmap bitmap = BitmapFactory.New(blocks.Width, blocks.Height);
-
-            using (bitmap.GetBitmapContext())
+            if (_bitmap == null || _bitmap.PixelWidth != blocks.Width || _bitmap.PixelHeight != blocks.Height)
             {
-                foreach (BlockData block in changedBlocks)
-                {
-                    bitmap.SetPixel(block.Col, block.Row, GetColor(block));
-                }
-            }
+                _bitmap = BitmapFactory.New(blocks.Width, blocks.Height);
 
-            using DrawingContext drawingContext = _backingStore.Open();
-            drawingContext.DrawImage(bitmap, new Rect(new Size(bitmap.PixelWidth, bitmap.PixelHeight)));
+                _backingStore.Children.Clear();
+                _backingStore.Children.Add(new ImageDrawing(_bitmap,
+                    new Rect(new Size(_bitmap.PixelWidth, _bitmap.PixelHeight))));
+            }
 
             BlockDataChanged?.Invoke();
         }
-        else
+
+        using (_bitmap.GetBitmapContext())
         {
-            if (changedBlocks != null)
+            foreach (BlockData block in changedBlocks)
             {
-                int minRow = int.MaxValue;
-                int maxRow = int.MinValue;
-                int minCol = int.MaxValue;
-                int maxCol = int.MinValue;
-
-                List<BlockData> copiedBlocks = new();
-
-                foreach (BlockData block in changedBlocks)
-                {
-                    minRow = Math.Min(minRow, block.Row);
-                    maxRow = Math.Max(maxRow, block.Row);
-                    minCol = Math.Min(minCol, block.Col);
-                    maxCol = Math.Max(maxCol, block.Col);
-                    copiedBlocks.Add(block);
-                }
-
-                WriteableBitmap bitmap = BitmapFactory.New(maxCol - minCol + 1, maxRow - minRow + 1);
-
-                using (bitmap.GetBitmapContext())
-                {
-                    foreach (BlockData block in copiedBlocks)
-                    {
-                        bitmap.SetPixel(block.Col - minCol, block.Row - minRow, GetColor(block));
-                    }
-                }
-
-                using DrawingContext drawingContext = _backingStore.Append();
-                drawingContext.DrawImage(bitmap, new Rect(new Point(minCol, minRow), new Size(bitmap.PixelWidth, bitmap.PixelHeight)));
+                Color color = GetColor(block);
+                _bitmap.SetPixel(block.Col, block.Row, color);
             }
         }
     }

@@ -30,7 +30,8 @@ internal class RandomBlockOptimizer : BlockOptimizerBase
                         int row = nextBlock.Row + deltaRow - RowOffset;
                         int col = nextBlock.Col + deltaCol - ColOffset;
                         if (row >= Height || col >= Width || Blocks[row, col] == null ||
-                            !BlockDataExtensions.AreColorsSimilar(nextBlock.Color, Blocks[row, col].Value.Color, minSimilarity))
+                            !BlockDataExtensions.AreColorsSimilar(nextBlock.Color, Blocks[row, col].Value.Color, minSimilarity) ||
+                            Blocks[row, col].Value.Layer != nextBlock.Layer)
                             foundHole = true;
                     }
 

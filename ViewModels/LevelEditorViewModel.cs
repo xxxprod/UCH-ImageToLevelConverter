@@ -244,7 +244,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             yield break;
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityPercentage);
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, ColorSimilarityPercentage, GetActiveLayers());
 
         foreach (BlockData block in blocksToOptimize)
         {
@@ -261,7 +261,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, blockData.Color, ColorSimilarityPercentage);
+        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, ColorSimilarityPercentage, GetActiveLayers());
 
         RandomBlockOptimizer optimizer = new(blocksToOptimize.ToArray());
 
@@ -291,7 +291,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
         Func<BlockData, IEnumerable<BlockData>> updateBlock)
     {
-        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, origin.Color, ColorSimilarityPercentage);
+        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, ColorSimilarityPercentage, GetActiveLayers());
 
         foreach (BlockData block in blocksWithSameColor)
         {
@@ -338,7 +338,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     protected virtual void OnBlocksChanged(IEnumerable<BlockData> changedBlocks)
     {
         BlocksChanged?.Invoke(changedBlocks);
-        //UpdateLevelFullness();
+        UpdateLevelFullness();
     }
 
     private void UpdateLevelFullness()
@@ -353,5 +353,10 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         _redoHistory.Clear();
         CanRedo.Value = false;
         CanUndo.Value = true;
+    }
+
+    private IEnumerable<Layer> GetActiveLayers()
+    {
+        return Layers.Where(a => a.Value.IsVisible).Select(a => a.Value.Layer);
     }
 }

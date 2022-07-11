@@ -85,7 +85,7 @@ public class ImageSelectorViewModel : ViewModelBase, IPixelGridViewModel
     protected virtual void OnBlocksChanged()
     {
         BlocksChanged?.Invoke(Blocks);
-        //UpdateLevelFullness();
+        UpdateLevelFullness();
     }
 
 

@@ -97,8 +97,8 @@ public partial class LevelGridView
                 zoomFactor = 1;
                 break;
             case > MaxZoomScale:
+                zoomFactor *= MaxZoomScale / _zoomScale;
                 _zoomScale = MaxZoomScale;
-                zoomFactor = 1;
                 break;
         }
 
