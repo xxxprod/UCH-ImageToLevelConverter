@@ -8,10 +8,10 @@ public class GridHelpers
 {
     private static void SetStarColumns(Grid grid)
     {
-        var starColumns =
+        string[] starColumns =
             GetStarColumns(grid).Split(',');
 
-        for (var i = 0; i < grid.ColumnDefinitions.Count; i++)
+        for (int i = 0; i < grid.ColumnDefinitions.Count; i++)
             if (starColumns.Contains(i.ToString()))
                 grid.ColumnDefinitions[i].Width =
                     new GridLength(1, GridUnitType.Star);
@@ -19,10 +19,10 @@ public class GridHelpers
 
     private static void SetStarRows(Grid grid)
     {
-        var starRows =
+        string[] starRows =
             GetStarRows(grid).Split(',');
 
-        for (var i = 0; i < grid.RowDefinitions.Count; i++)
+        for (int i = 0; i < grid.RowDefinitions.Count; i++)
             if (starRows.Contains(i.ToString()))
                 grid.RowDefinitions[i].Height =
                     new GridLength(1, GridUnitType.Star);
@@ -42,7 +42,7 @@ public class GridHelpers
     // Get
     public static int GetRowCount(DependencyObject obj)
     {
-        return (int)obj.GetValue(RowCountProperty);
+        return (int) obj.GetValue(RowCountProperty);
     }
 
     // Set
@@ -55,15 +55,15 @@ public class GridHelpers
     public static void RowCountChanged(
         DependencyObject obj, DependencyPropertyChangedEventArgs e)
     {
-        if (!(obj is Grid) || (int)e.NewValue < 0)
+        if (!(obj is Grid) || (int) e.NewValue < 0)
             return;
 
-        var grid = (Grid)obj;
+        Grid grid = (Grid) obj;
         grid.RowDefinitions.Clear();
 
-        for (var i = 0; i < (int)e.NewValue; i++)
+        for (int i = 0; i < (int) e.NewValue; i++)
             grid.RowDefinitions.Add(
-                new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+                new RowDefinition {Height = new GridLength(1, GridUnitType.Star)});
 
         SetStarRows(grid);
     }
@@ -84,7 +84,7 @@ public class GridHelpers
     // Get
     public static int GetColumnCount(DependencyObject obj)
     {
-        return (int)obj.GetValue(ColumnCountProperty);
+        return (int) obj.GetValue(ColumnCountProperty);
     }
 
     // Set
@@ -97,14 +97,14 @@ public class GridHelpers
     public static void ColumnCountChanged(
         DependencyObject obj, DependencyPropertyChangedEventArgs e)
     {
-        if (obj is not Grid grid || (int)e.NewValue < 0)
+        if (obj is not Grid grid || (int) e.NewValue < 0)
             return;
 
         grid.ColumnDefinitions.Clear();
 
-        for (var i = 0; i < (int)e.NewValue; i++)
+        for (int i = 0; i < (int) e.NewValue; i++)
             grid.ColumnDefinitions.Add(
-                new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+                new ColumnDefinition {Width = new GridLength(1, GridUnitType.Star)});
 
         SetStarColumns(grid);
     }
@@ -125,7 +125,7 @@ public class GridHelpers
     // Get
     public static string GetStarRows(DependencyObject obj)
     {
-        return (string)obj.GetValue(StarRowsProperty);
+        return (string) obj.GetValue(StarRowsProperty);
     }
 
     // Set
@@ -160,7 +160,7 @@ public class GridHelpers
     // Get
     public static string GetStarColumns(DependencyObject obj)
     {
-        return (string)obj.GetValue(StarColumnsProperty);
+        return (string) obj.GetValue(StarColumnsProperty);
     }
 
     // Set

@@ -20,7 +20,7 @@ public class BlockGridView : FrameworkElement
     public event Action BlockDataChanged;
 
     [DllImport("User32.dll")]
-    private static extern bool SetCursorPos(int X, int Y);
+    private static extern bool SetCursorPos(int x, int y);
 
     public BlockGridView()
     {
@@ -28,7 +28,7 @@ public class BlockGridView : FrameworkElement
         RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.NearestNeighbor);
     }
 
-    public IPixelGridViewModel ViewModel { get; private set; }
+    public LevelEditorViewModel ViewModel { get; private set; }
 
     public static readonly DependencyProperty EmptyBlockColorProperty = DependencyProperty.Register(
         "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color), FrameworkPropertyMetadataOptions.None,
@@ -40,7 +40,7 @@ public class BlockGridView : FrameworkElement
 
     private void OnEmptyColorChanged()
     {
-        if (ViewModel == null)
+        if (ViewModel?.Blocks == null)
             return;
         OnBlocksChanged(ViewModel.Blocks);
     }
@@ -56,7 +56,7 @@ public class BlockGridView : FrameworkElement
         if (ViewModel != null)
             ViewModel.BlocksChanged -= OnBlocksChanged;
 
-        ViewModel = (IPixelGridViewModel)e.NewValue;
+        ViewModel = (LevelEditorViewModel)e.NewValue;
         if (ViewModel == null)
             return;
 
@@ -91,12 +91,12 @@ public class BlockGridView : FrameworkElement
 
     private Color GetColor(BlockData block)
     {
-        if (!ViewModel.Layers[block.Layer].IsVisible)
+        if (!ViewModel.LevelEditorTools.Layers[block.Layer].IsVisible)
             return EmptyBlockColor;
         Color color = block.Color;
         if (color == BlockData.EmptyColor)
             color = EmptyBlockColor;
-        else if (ViewModel.HighlightLayer && ViewModel.HighlightedLayer.Value.Layer != block.Layer)
+        else if (ViewModel.LevelEditorTools.HighlightLayer && ViewModel.LevelEditorTools.HighlightedLayer.Value.Layer != block.Layer)
             color = Color.Multiply(color, 0.4f);
         return color;
     }
@@ -105,18 +105,16 @@ public class BlockGridView : FrameworkElement
     {
         base.OnMouseDown(e);
 
-        if (ViewModel == null || !ViewModel.EditorEnabled) return;
+        if (ViewModel == null) return;
 
         _recordingGridActions |= Mouse.LeftButton == MouseButtonState.Pressed;
 
         if (!_recordingGridActions) return;
 
-        ViewModel.StartRecordingGridActions();
-
         BlockData? blockData = GetBlockUnderCursor(e);
         if (blockData != null)
         {
-            _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
+            _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value, true);
             _lastRecordedBlock = blockData;
             _snapToEdgeOrientation = null;
         }
@@ -140,7 +138,7 @@ public class BlockGridView : FrameworkElement
         if (deltaRow == 0 && deltaCol == 0)
             return;
 
-        if (ViewModel.SnapToEdgesEnabled)
+        if (ViewModel.LevelEditorTools.SnapToEdgesEnabled)
         {
             _snapToEdgeOrientation ??= Math.Abs(deltaRow) > Math.Abs(deltaCol)
                 ? Orientation.Vertical
@@ -169,13 +167,16 @@ public class BlockGridView : FrameworkElement
             SetCursorPos((int)screenPosition.X, (int)screenPosition.Y);
         }
 
-        _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value);
+        _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value, false);
         _lastRecordedBlock = blockData;
     }
 
 
     protected override Size MeasureOverride(Size availableSize)
     {
+        if (ViewModel.Blocks == null)
+            return base.MeasureOverride(availableSize);
+
         return new Size(
             ViewModel.Blocks.Width,
             ViewModel.Blocks.Height

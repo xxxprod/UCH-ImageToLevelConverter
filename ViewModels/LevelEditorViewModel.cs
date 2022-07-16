@@ -6,112 +6,57 @@ using System.Linq;
 using System.Text;
 using System.Windows;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
+using Microsoft.Win32;
 using UCH_ImageToLevelConverter.Model;
 using UCH_ImageToLevelConverter.Optimizer;
 using UCH_ImageToLevelConverter.Tools;
+using UCH_ImageToLevelConverter.Views;
 
 namespace UCH_ImageToLevelConverter.ViewModels;
 
-public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
+public class LevelEditorViewModel : ViewModelBase
 {
     private const string SnapshotsDirectory = "snapshots";
     private readonly Stack<BlockData[]> _redoHistory = new();
 
     private readonly Stack<BlockData[]> _undoHistory = new();
     private BlockDataCollection _blocks;
+    private readonly NewLevelPromptViewModel _newLevelPromptViewModel;
 
     public LevelEditorViewModel()
     {
         UndoCommand = new DelegateCommand(o => UndoAction());
         RedoCommand = new DelegateCommand(o => RedoAction());
-        OptimizeAllCommand = new DelegateCommand(o => OptimizeAll());
-        BreakAllCommand = new DelegateCommand(o => BreakAll());
+        CreateNewLevelCommand = new DelegateCommand(o => CreateNewLevel());
+        LoadImageCommand = new DelegateCommand(o => LoadImage());
         SaveLevelCommand = new DelegateCommand(o => SaveLevel());
-        NavigateToImageSelectorCommand = new DelegateCommand(_ => { });
 
-        Property<bool>[] pixelGridActions = new[]
-        {
-            EraseBlockEnabled,
-            EraseRegionEnabled,
-            ColorPickingEnabled,
-            PaintBrushEnabled,
-            FillBrushEnabled,
-            OptimizerEnabled,
-            BreakBlockEnabled,
-            BreakRegionEnabled,
-            MoveToLayerEnabled,
-            MoveRegionToLayerEnabled
-        };
+        LevelEditorTools = new LevelEditorToolsViewModel();
+        LevelEditorTools.OptimizeAllCommand.ExecuteCalled += _ => OptimizeAll();
+        LevelEditorTools.BreakAllCommand.ExecuteCalled += _ => BreakAll();
+        LevelEditorTools.ToolsUpdated += LevelEditorTools_ToolsUpdated;
 
-        foreach (Property<bool> pixelGridAction in pixelGridActions)
-        {
-            Property<bool> localAction = pixelGridAction;
+        Blocks = new BlockDataCollection(70, 50);
 
-            localAction.OnChanged += newValue =>
-            {
-                EditorEnabled.Value = pixelGridActions.Any(a => a);
-                if (!newValue) return;
-
-                foreach (Property<bool> otherAction in pixelGridActions)
-                    if (!ReferenceEquals(otherAction, localAction))
-                        otherAction.Value = false;
-            };
-        }
-
-        Layers = Enum.GetValues<Layer>().OrderBy(a => a).ToDictionary(a => a, a => new LayerViewModel(a, true));
-
-        foreach (LayerViewModel layer in Layers.Values)
-            layer.IsVisible.OnChanged += _ => OnLayerVisibilityChanged(layer);
-
-        HighlightedLayer.OnChanged += OnHighlightedLayerChanged;
-        MoveToLayerEnabled.OnChanged += MoveToLayerChanged;
-        MoveRegionToLayerEnabled.OnChanged += MoveToLayerChanged;
-        HighlightLayer.OnChanged += highlight =>
-        {
-            if (!highlight)
-            {
-                MoveToLayerEnabled.Value = false;
-                MoveRegionToLayerEnabled.Value = false;
-            }
-
-            OnBlocksChanged(Blocks);
-        };
-        HighlightedLayer.Value = Layers[Layer.Default];
+        _newLevelPromptViewModel = new NewLevelPromptViewModel();
     }
 
+    public LevelEditorToolsViewModel LevelEditorTools { get; }
+
     public DelegateCommand SaveLevelCommand { get; }
+    public DelegateCommand CreateNewLevelCommand { get; }
+    public DelegateCommand LoadImageCommand { get; }
     public DelegateCommand UndoCommand { get; }
     public DelegateCommand RedoCommand { get; }
-    public DelegateCommand OptimizeAllCommand { get; }
-    public DelegateCommand BreakAllCommand { get; }
-    public DelegateCommand NavigateToImageSelectorCommand { get; }
 
     public Property<string> LevelName { get; } = new();
 
     public Property<bool> CanUndo { get; } = new();
     public Property<bool> CanRedo { get; } = new();
 
-    public Property<bool> ColorPickingEnabled { get; } = new();
-    public Property<bool> EraseBlockEnabled { get; } = new();
-    public Property<bool> EraseRegionEnabled { get; } = new();
-    public Property<bool> PaintBrushEnabled { get; } = new();
-    public Property<bool> FillBrushEnabled { get; } = new();
-    public Property<bool> OptimizerEnabled { get; } = new();
-    public Property<bool> BreakBlockEnabled { get; } = new();
-    public Property<bool> BreakRegionEnabled { get; } = new();
-    public Property<bool> MoveToLayerEnabled { get; } = new();
-    public Property<bool> MoveRegionToLayerEnabled { get; } = new();
-    public Property<bool> SnapToEdgesEnabled { get; } = new();
 
-    public Property<Color> SelectedPaintColor { get; } = new(Colors.Crimson);
-    public IntProperty ColorSimilarityPercentage { get; } = new(80, 0, 100);
-
-    public Property<LayerViewModel> HighlightedLayer { get; } = new();
-    public Property<bool> HighlightLayer { get; } = new();
-
-    public Dictionary<Layer, LayerViewModel> Layers { get; }
     public IntProperty LevelFullness { get; } = new();
-    public Property<Color> BackgroundColor { get; } = new(Colors.LightSteelBlue);
 
     public BlockDataCollection Blocks
     {
@@ -124,45 +69,48 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             CanUndo.Value = false;
             CanRedo.Value = false;
             OnBlocksChanged(value);
+            OnPropertyChanged();
         }
     }
 
     public event Action<IEnumerable<BlockData>> BlocksChanged;
 
-    public Property<bool> EditorEnabled { get; } = new();
-
-    public void StartRecordingGridActions()
+    private void LevelEditorTools_ToolsUpdated()
     {
-        if (ColorPickingEnabled)
-            return;
-        PushUndoData(Blocks);
+        OnBlocksChanged(Blocks);
     }
 
-    public bool OnPixelGridAction(BlockData blockData)
+    public bool OnPixelGridAction(BlockData blockData, bool saveCurrentState)
     {
-        if (ColorPickingEnabled)
+        if (!LevelEditorTools.PixelGridActionsEnabled)
+            return false;
+
+        if (saveCurrentState && !LevelEditorTools.ColorPickingEnabled)
+            PushUndoData(Blocks);
+
+        if (LevelEditorTools.ColorPickingEnabled)
         {
             if (blockData.Color != BlockData.EmptyColor)
-                SelectedPaintColor.Value = blockData.Color;
+                LevelEditorTools.SelectedPaintColor.Value = blockData.Color;
         }
-        else if (EraseBlockEnabled || EraseRegionEnabled)
+        else if (LevelEditorTools.EraseBlockEnabled || LevelEditorTools.EraseRegionEnabled)
         {
             OnBlocksChanged(EraseBlocks(blockData));
         }
-        else if (PaintBrushEnabled || FillBrushEnabled)
+        else if (LevelEditorTools.PaintBrushEnabled || LevelEditorTools.FillBrushEnabled)
         {
             OnBlocksChanged(PaintBlocks(blockData));
         }
-        else if (OptimizerEnabled)
+        else if (LevelEditorTools.OptimizerEnabled)
         {
             OnBlocksChanged(OptimizeSection(blockData));
             return false;
         }
-        else if (BreakBlockEnabled || BreakRegionEnabled)
+        else if (LevelEditorTools.BreakBlockEnabled || LevelEditorTools.BreakRegionEnabled)
         {
             OnBlocksChanged(BreakSection(blockData));
         }
-        else if (MoveToLayerEnabled || MoveRegionToLayerEnabled)
+        else if (LevelEditorTools.MoveToLayerEnabled || LevelEditorTools.MoveRegionToLayerEnabled)
         {
             OnBlocksChanged(MoveToLayer(blockData));
         }
@@ -170,34 +118,6 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         return true;
     }
 
-    private void MoveToLayerChanged(bool moveToLayerEnabled)
-    {
-        if (moveToLayerEnabled)
-        {
-            HighlightedLayer.Value ??= Layers[Layer.Default];
-            HighlightLayer.Value = true;
-        }
-    }
-
-
-    private void OnLayerVisibilityChanged(LayerViewModel layer)
-    {
-        OnBlocksChanged(Blocks);
-    }
-
-    private void OnHighlightedLayerChanged(LayerViewModel layer)
-    {
-        if (layer == null || !layer.IsVisible.Value)
-            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
-            {
-                layer ??= Layers[Layer.Default];
-                layer.IsVisible.Value = true;
-                HighlightedLayer.Value = layer;
-            }));
-
-        if (HighlightLayer)
-            OnBlocksChanged(Blocks);
-    }
 
     private void RedoAction()
     {
@@ -240,7 +160,28 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
 
         RandomBlockOptimizer optimizer = new(Blocks.ToArray());
 
-        OnBlocksChanged(Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityPercentage)));
+        OnBlocksChanged(Blocks.ReplaceBlocks(optimizer.Optimize(LevelEditorTools.ColorSimilarityPercentage)));
+    }
+
+    private IEnumerable<BlockData> MoveToLayer(BlockData blockData)
+    {
+        return UpdateBlocks(blockData, !LevelEditorTools.MoveRegionToLayerEnabled,
+            block => Blocks.Update(block, block.Color, LevelEditorTools.HighlightedLayer.Value.Layer));
+    }
+
+    private IEnumerable<BlockData> PaintBlocks(BlockData blockData)
+    {
+        return UpdateBlocks(blockData, !LevelEditorTools.FillBrushEnabled,
+            block => Blocks.Update(block, LevelEditorTools.SelectedPaintColor,
+                LevelEditorTools.HighlightedLayer.Value.Layer));
+    }
+
+    private IEnumerable<BlockData> EraseBlocks(BlockData blockData)
+    {
+        if (blockData.Color == BlockData.EmptyColor)
+            return Enumerable.Empty<BlockData>();
+
+        return UpdateBlocks(blockData, !LevelEditorTools.EraseRegionEnabled, block => Blocks.ClearBlock(block));
     }
 
     private IEnumerable<BlockData> BreakSection(BlockData blockData)
@@ -248,14 +189,14 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             yield break;
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, ColorSimilarityPercentage, GetActiveLayers());
+        IEnumerable<BlockData> blocksToOptimize = GetRegionBlocks(blockData);
 
         foreach (BlockData block in blocksToOptimize)
         {
             foreach (BlockData updatedBlock in Blocks.ReplaceBlocks(block.BreakToCells()))
                 yield return updatedBlock;
 
-            if (!BreakRegionEnabled)
+            if (!LevelEditorTools.BreakRegionEnabled)
                 yield break;
         }
     }
@@ -265,37 +206,17 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         if (blockData.Color == BlockData.EmptyColor)
             return Enumerable.Empty<BlockData>();
 
-        IEnumerable<BlockData> blocksToOptimize = Blocks.FindBlocksWithSameColor(blockData, ColorSimilarityPercentage, GetActiveLayers());
+        IEnumerable<BlockData> blocksToOptimize = GetRegionBlocks(blockData);
 
         RandomBlockOptimizer optimizer = new(blocksToOptimize.ToArray());
 
-        return Blocks.ReplaceBlocks(optimizer.Optimize(ColorSimilarityPercentage));
-    }
-
-    private IEnumerable<BlockData> MoveToLayer(BlockData blockData)
-    {
-        return UpdateBlocks(blockData, !MoveRegionToLayerEnabled,
-            block => Blocks.Update(block, block.Color, HighlightedLayer.Value.Layer));
-    }
-
-    private IEnumerable<BlockData> PaintBlocks(BlockData blockData)
-    {
-        return UpdateBlocks(blockData, !FillBrushEnabled,
-            block => Blocks.Update(block, SelectedPaintColor, HighlightedLayer.Value.Layer));
-    }
-
-    private IEnumerable<BlockData> EraseBlocks(BlockData blockData)
-    {
-        if (blockData.Color == BlockData.EmptyColor)
-            return Enumerable.Empty<BlockData>();
-
-        return UpdateBlocks(blockData, !EraseRegionEnabled, block => Blocks.ClearBlock(block));
+        return Blocks.ReplaceBlocks(optimizer.Optimize(LevelEditorTools.ColorSimilarityPercentage));
     }
 
     private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
         Func<BlockData, IEnumerable<BlockData>> updateBlock)
     {
-        IEnumerable<BlockData> blocksWithSameColor = Blocks.FindBlocksWithSameColor(origin, ColorSimilarityPercentage, GetActiveLayers());
+        IEnumerable<BlockData> blocksWithSameColor = GetRegionBlocks(origin);
 
         foreach (BlockData block in blocksWithSameColor)
         {
@@ -305,6 +226,44 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
             if (onlyFirstBlock)
                 yield break;
         }
+    }
+
+    private IEnumerable<BlockData> GetRegionBlocks(BlockData blockData)
+    {
+        return Blocks.FindBlocksWithSameColor(blockData, LevelEditorTools.ColorSimilarityPercentage,
+            LevelEditorTools.GetActiveLayers());
+    }
+
+    private void CreateNewLevel()
+    {
+        NewLevelPromptView view = new()
+        {
+            Owner = Application.Current.MainWindow,
+            DataContext = _newLevelPromptViewModel
+        };
+
+        if (view.ShowDialog() == true)
+        {
+            Blocks = new BlockDataCollection(
+                _newLevelPromptViewModel.Width,
+                _newLevelPromptViewModel.Height
+            );
+        }
+    }
+
+    private void LoadImage()
+    {
+        OpenFileDialog openFileDialog = new();
+        if (openFileDialog.ShowDialog() != true)
+            return;
+
+        BitmapImage image = new(new Uri(openFileDialog.FileName));
+
+        BitmapSource bitmapSource = image
+            .Resize(100, 100)
+            .Format(PixelFormats.Rgb24);
+
+        Blocks = new BlockDataCollection(100, 100, bitmapSource.GetColorData().ToArray());
     }
 
     private void SaveLevel()
@@ -329,7 +288,7 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Information) == MessageBoxResult.Yes)
         {
-            ProcessStartInfo startInfo = new ProcessStartInfo
+            ProcessStartInfo startInfo = new()
             {
                 Arguments = Path.GetDirectoryName(filePath),
                 FileName = "explorer.exe"
@@ -348,7 +307,8 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
     private void UpdateLevelFullness()
     {
         LevelFullness.Value = Blocks == null
-            ? 0 : Blocks.GetDistinctNonEmptyBlocks().Count() * 5 + 10; // Add 10 for Start and Goal
+            ? 0
+            : Blocks.GetDistinctNonEmptyBlocks().Count() * 5 + 10; // Add 10 for Start and Goal
     }
 
     private void PushUndoData(IEnumerable<BlockData> undoData)
@@ -357,10 +317,5 @@ public class LevelEditorViewModel : ViewModelBase, IPixelGridViewModel
         _redoHistory.Clear();
         CanRedo.Value = false;
         CanUndo.Value = true;
-    }
-
-    private IEnumerable<Layer> GetActiveLayers()
-    {
-        return Layers.Where(a => a.Value.IsVisible).Select(a => a.Value.Layer);
     }
 }

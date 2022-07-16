@@ -9,11 +9,6 @@ namespace UCH_ImageToLevelConverter.Tools;
 
 public class LayerColorConverter : MarkupExtension, IValueConverter
 {
-    public override object ProvideValue(IServiceProvider serviceProvider)
-    {
-        return this;
-    }
-
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
         if (value is not Layer layer)
@@ -30,5 +25,10 @@ public class LayerColorConverter : MarkupExtension, IValueConverter
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
+    }
+
+    public override object ProvideValue(IServiceProvider serviceProvider)
+    {
+        return this;
     }
 }
