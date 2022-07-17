@@ -1,0 +1,15 @@
+// Threshold shader 
+
+// Object Declarations
+
+// FXC.EXE /O0 /Fc /Zi /T ps_3_0 /Fo PixelShader.fx.ps PixelShader.ps
+
+uniform sampler2D Colors: register(s0);
+
+//--------------------------------------------------------------------------------------
+// Pixel Shader
+//--------------------------------------------------------------------------------------
+float4 main(float2 uv : TEXCOORD) : COLOR
+{
+    return tex2D(Colors, uv);
+}

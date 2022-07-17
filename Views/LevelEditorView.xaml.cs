@@ -9,7 +9,7 @@ namespace UCH_ImageToLevelConverter.Views;
 
 public partial class LevelEditorView
 {
-    private const double MinZoomScale = 1;
+    private const double MinZoomScale = 0.1;
     private const double MaxZoomScale = 50;
 
     private bool _dragEnabled;

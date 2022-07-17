@@ -1,6 +1,21 @@
+using System;
+using System.Collections.Generic;
 using System.Windows.Media;
 
 namespace UCH_ImageToLevelConverter.Model;
+
+public class BlockDataCoordinatesComparer : IEqualityComparer<BlockData>
+{
+    public bool Equals(BlockData x, BlockData y)
+    {
+        return x.Top == y.Top && x.Bottom == y.Bottom && x.Left == y.Left && x.Right == y.Right;
+    }
+
+    public int GetHashCode(BlockData obj)
+    {
+        return HashCode.Combine(obj.Top, obj.Bottom, obj.Left, obj.Right);
+    }
+}
 
 public readonly struct BlockData
 {
