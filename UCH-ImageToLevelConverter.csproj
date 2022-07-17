@@ -19,7 +19,6 @@
     <None Remove="Icons\snap.png" />
     <None Remove="Icons\UCH_32x32.png" />
     <None Remove="Icons\undo.png" />
-    <None Remove="Shader\PixelShader.fx.ps" />
   </ItemGroup>
 
   <ItemGroup>
@@ -44,7 +43,6 @@
     <Resource Include="Icons\color_picker.ico" />
     <Resource Include="Icons\eraser.ico" />
     <Resource Include="Icons\undo.png" />
-    <Resource Include="Shader\PixelShader.fx.ps" />
   </ItemGroup>
 
   <ItemGroup>

@@ -6,22 +6,23 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using UCH_ImageToLevelConverter.Model;
-using UCH_ImageToLevelConverter.Shader;
 using UCH_ImageToLevelConverter.ViewModels;
 
 namespace UCH_ImageToLevelConverter.Views;
 
-public class BlockGridView : Grid
+public class BlockGridView : FrameworkElement
 {
+    private const int BlockSize = 20;
+
     public static readonly DependencyProperty EmptyBlockColorProperty = DependencyProperty.Register(
         "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color),
             FrameworkPropertyMetadataOptions.None,
             (o, _) => ((BlockGridView)o).OnEmptyColorChanged()));
 
-    private readonly ColorShaderControl _colorShader;
-    private readonly GridShaderControl _gridShader;
-
+    private WriteableBitmap _bitmap;
+    private readonly DrawingGroup _backingStore = new();
     private BlockData? _lastRecordedBlock;
     private bool _recordingGridActions;
     private Orientation? _snapToEdgeOrientation;
@@ -29,14 +30,8 @@ public class BlockGridView : Grid
     public BlockGridView()
     {
         DataContextChanged += OnDataContextChanged;
-        _colorShader = new ColorShaderControl(this);
-        _gridShader = new GridShaderControl(this);
-        _colorShader.HorizontalAlignment = HorizontalAlignment.Left;
-        _colorShader.VerticalAlignment = VerticalAlignment.Top;
-        _gridShader.HorizontalAlignment = HorizontalAlignment.Left;
-        _gridShader.VerticalAlignment = VerticalAlignment.Top;
-        Children.Add(_colorShader);
-        Children.Add(_gridShader);
+        _backingStore.Transform = new ScaleTransform(1.0 / BlockSize, 1.0 / BlockSize);
+        RenderOptions.SetBitmapScalingMode(this, BitmapScalingMode.HighQuality);
     }
 
     public LevelEditorViewModel ViewModel { get; private set; }
@@ -75,17 +70,68 @@ public class BlockGridView : Grid
     {
         if (changedBlocks is BlockDataCollection blocks)
         {
-            _colorShader.SetSize(blocks.Width, blocks.Height);
-            _gridShader.SetSize(blocks.Width, blocks.Height);
+            int width = blocks.Width * BlockSize;
+            int height = blocks.Height * BlockSize;
 
-            BlockDataChanged?.Invoke();
+            if (_bitmap == null || _bitmap.PixelWidth != width || _bitmap.PixelHeight != height)
+            {
+                _bitmap = BitmapFactory.New(width, height);
+                _backingStore.Children.Clear();
+                _backingStore.Children.Add(new ImageDrawing(_bitmap, new Rect(0, 0, width, height)));
+
+                BlockDataChanged?.Invoke();
+            }
         }
 
-        changedBlocks = changedBlocks as IList<BlockData> ?? changedBlocks.ToArray();
+        using (_bitmap.GetBitmapContext())
+        {
+            HashSet<BlockData> seenBlocks = new(new BlockDataCoordinatesComparer());
 
+            foreach (BlockData block in changedBlocks.Where(seenBlocks.Add))
+            {
+                Color color = GetColor(block);
 
-        _colorShader.DrawBlocks(changedBlocks);
-        _gridShader.DrawBlocks(changedBlocks);
+                int x1 = block.Left * BlockSize;
+                int x2 = (block.Right + 1) * BlockSize;
+                int y1 = block.Top * BlockSize;
+                int y2 = (block.Bottom + 1) * BlockSize;
+
+                _bitmap.FillRectangle(x1, y1, x2, y2, color);
+                
+                color = Color.Multiply(color, 0.8f);
+
+                _bitmap.FillRectangle(x1, y1, x2, y1 + 1, color);
+                _bitmap.FillRectangle(x1, y2 - 1, x2, y2, color);
+                _bitmap.FillRectangle(x1, y1, x1 + 1, y2, color);
+                _bitmap.FillRectangle(x2 - 1, y1, x2, y2, color);
+            }
+        }
+    }
+
+    protected Color GetColor(BlockData block)
+    {
+        if (!ViewModel.LevelEditorTools.Layers[block.Layer].IsVisible)
+            return EmptyBlockColor;
+        Color color = block.Color;
+        if (color == BlockData.EmptyColor)
+            color = EmptyBlockColor;
+        else if (ViewModel.LevelEditorTools.HighlightLayer &&
+                 ViewModel.LevelEditorTools.HighlightedLayer.Value.Layer != block.Layer)
+            color = Color.Multiply(color, 0.4f);
+        return color;
+    }
+
+    protected override void OnRender(DrawingContext dc) => dc.DrawDrawing(_backingStore);
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (ViewModel.Blocks == null)
+            return base.MeasureOverride(availableSize);
+
+        return new Size(
+            ViewModel.Blocks.Width,
+            ViewModel.Blocks.Height
+        );
     }
 
     protected override void OnMouseDown(MouseButtonEventArgs e)
