@@ -1,4 +1,5 @@
-﻿using System.Windows.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using UCH_ImageToLevelConverter.Model;
@@ -40,5 +41,16 @@ public class BaseShaderControl : Panel
                  Owner.ViewModel.LevelEditorTools.HighlightedLayer.Value.Layer != block.Layer)
             color = Color.Multiply(color, 0.4f);
         return color;
+    }
+
+    protected override Size MeasureOverride(Size availableSize)
+    {
+        if (Owner.ViewModel.Blocks == null)
+            return base.MeasureOverride(availableSize);
+
+        return new Size(
+            Owner.ViewModel.Blocks.Width,
+            Owner.ViewModel.Blocks.Height
+        );
     }
 }

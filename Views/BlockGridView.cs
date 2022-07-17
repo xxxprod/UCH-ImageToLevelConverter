@@ -17,7 +17,7 @@ public class BlockGridView : Grid
     public static readonly DependencyProperty EmptyBlockColorProperty = DependencyProperty.Register(
         "EmptyBlockColor", typeof(Color), typeof(BlockGridView), new FrameworkPropertyMetadata(default(Color),
             FrameworkPropertyMetadataOptions.None,
-            (o, _) => ((BlockGridView) o).OnEmptyColorChanged()));
+            (o, _) => ((BlockGridView)o).OnEmptyColorChanged()));
 
     private readonly ColorShaderControl _colorShader;
     private readonly GridShaderControl _gridShader;
@@ -31,6 +31,10 @@ public class BlockGridView : Grid
         DataContextChanged += OnDataContextChanged;
         _colorShader = new ColorShaderControl(this);
         _gridShader = new GridShaderControl(this);
+        _colorShader.HorizontalAlignment = HorizontalAlignment.Left;
+        _colorShader.VerticalAlignment = VerticalAlignment.Top;
+        _gridShader.HorizontalAlignment = HorizontalAlignment.Left;
+        _gridShader.VerticalAlignment = VerticalAlignment.Top;
         Children.Add(_colorShader);
         Children.Add(_gridShader);
     }
@@ -39,7 +43,7 @@ public class BlockGridView : Grid
 
     public Color EmptyBlockColor
     {
-        get => (Color) GetValue(EmptyBlockColorProperty);
+        get => (Color)GetValue(EmptyBlockColorProperty);
         set => SetValue(EmptyBlockColorProperty, value);
     }
 
@@ -60,7 +64,7 @@ public class BlockGridView : Grid
         if (ViewModel != null)
             ViewModel.BlocksChanged -= OnBlocksChanged;
 
-        ViewModel = (LevelEditorViewModel) e.NewValue;
+        ViewModel = (LevelEditorViewModel)e.NewValue;
         if (ViewModel == null)
             return;
 
@@ -147,37 +151,19 @@ public class BlockGridView : Grid
 
             Point snappedPoint = new(col + 0.5, row + 0.5);
             Point screenPosition = PointToScreen(snappedPoint);
-            SetCursorPos((int) screenPosition.X, (int) screenPosition.Y);
+            SetCursorPos((int)screenPosition.X, (int)screenPosition.Y);
         }
 
         _recordingGridActions = ViewModel.OnPixelGridAction(blockData.Value, false);
         _lastRecordedBlock = blockData;
     }
 
-
-    protected override Size MeasureOverride(Size availableSize)
-    {
-        if (ViewModel.Blocks == null)
-            return base.MeasureOverride(availableSize);
-
-        return new Size(
-            ViewModel.Blocks.Width,
-            ViewModel.Blocks.Height
-        );
-    }
-
-
-    //protected override void OnRender(DrawingContext dc)
-    //{
-    //    dc.DrawDrawing(_backingStore);
-    //}
-
     private BlockData? GetBlockUnderCursor(MouseEventArgs e)
     {
         Point position = e.GetPosition(this);
 
-        int row = (int) position.Y;
-        int col = (int) position.X;
+        int row = (int)position.Y;
+        int col = (int)position.X;
 
         return ViewModel.Blocks.IsOutOfBounds(row, col) ? null : ViewModel.Blocks[row, col];
     }
