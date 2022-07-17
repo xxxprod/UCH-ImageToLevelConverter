@@ -6,7 +6,7 @@
              xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
              xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
              mc:Ignorable="d" 
-             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModels:LevelEditorViewModel}">
+             d:DesignHeight="450" d:DesignWidth="800" d:DataContext="{d:DesignInstance viewModels:LevelEditorToolsViewModel}">
     <Grid Grid.IsSharedSizeScope="True">
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -18,7 +18,9 @@
         </Grid.ColumnDefinitions>
 
         <Label Grid.Row="0" Grid.Column="0" Content="Name" Margin="6,0,0,0" FontWeight="Bold"/>
-        <Label Grid.Row="0" Grid.Column="1" Content="Visible" Margin="-10,0,0,0" FontWeight="Bold"/>
+        <CheckBox Grid.Row="0" Grid.Column="1" Content="Visible" Margin="-10,0,0,0" FontWeight="Bold" VerticalAlignment="Center"
+                  IsChecked="{Binding AllLayersVisible.Value}" />
+        <!--<Label Grid.Row="0" Grid.Column="1" Content="Visible" Margin="-10,0,0,0" FontWeight="Bold"/>-->
 
         <ListBox Grid.Row="1"  Grid.Column="0" Grid.ColumnSpan="2" Name="LayerList"
                      ItemsSource="{Binding Layers.Values}"

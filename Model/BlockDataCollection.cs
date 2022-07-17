@@ -91,7 +91,7 @@ public class BlockDataCollection : IEnumerable<BlockData>
 
     public IEnumerable<int> GetNeighborIndices(BlockData block)
     {
-        for (int row = block.Top - 1; row <= block.Bottom + 1; row++)
+        for (int row = block.Top; row <= block.Bottom; row++)
         {
             yield return GetIndex(row, block.Left - 1);
             yield return GetIndex(row, block.Right + 1);

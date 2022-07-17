@@ -60,63 +60,87 @@
             </DockPanel>
 
 
+            <Label Content="Brushes" FontWeight="Bold" Margin="0, 14, 0, 0"/>
+            <Grid Height="2">
+                <Grid.Background>
+                    <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                        <GradientStop Color="Black" Offset="0" />
+                        <GradientStop Color="Transparent" Offset="1.0" />
+                    </LinearGradientBrush>
+                </Grid.Background>
+            </Grid>
 
-            <Expander Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="PaintExpander_OnCollapsed">
-                <Expander.HeaderTemplate>
-                    <DataTemplate>
-                        <Label Content="Paint &amp; Erase" FontWeight="Bold" />
-                    </DataTemplate>
-                </Expander.HeaderTemplate>
-
-                <StackPanel Orientation="Vertical">
-
-                    <DockPanel LastChildFill="True">
-                        <CheckBox IsChecked="{Binding PaintBrushEnabled.Value}" 
+            <DockPanel LastChildFill="True">
+                <CheckBox IsChecked="{Binding PaintBrushEnabled.Value}" 
                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                       DockPanel.Dock="Right">
-                            <CheckBox.Content>
-                                <Image Source="../Icons/brush.png" Width="16" Height="16" />
-                            </CheckBox.Content>
-                        </CheckBox>
-                        <Label Content="Brush:" />
-                    </DockPanel>
+                    <CheckBox.Content>
+                        <Image Source="../Icons/brush.png" Width="16" Height="16" />
+                    </CheckBox.Content>
+                </CheckBox>
+                <Label Content="Paint Block:" />
+            </DockPanel>
 
-                    <DockPanel LastChildFill="True">
-                        <CheckBox IsChecked="{Binding FillBrushEnabled.Value}" 
+            <DockPanel LastChildFill="True">
+                <CheckBox IsChecked="{Binding FillBrushEnabled.Value}" 
                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                       DockPanel.Dock="Right">
-                            <CheckBox.Content>
-                                <Image Source="../Icons/brush.png" Width="16" Height="16" />
-                            </CheckBox.Content>
-                        </CheckBox>
-                        <Label Content="Fill Region:" />
-                    </DockPanel>
+                    <CheckBox.Content>
+                        <Image Source="../Icons/brush.png" Width="16" Height="16" />
+                    </CheckBox.Content>
+                </CheckBox>
+                <Label Content="Paint Region:" />
+            </DockPanel>
+            
+            <Grid Height="14"/>
 
-                    <DockPanel LastChildFill="True">
-                        <CheckBox IsChecked="{Binding EraseBlockEnabled.Value}" 
+            <DockPanel LastChildFill="True">
+                <CheckBox IsChecked="{Binding EraseBlockEnabled.Value}" 
                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                       DockPanel.Dock="Right">
-                            <CheckBox.Content>
-                                <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
-                            </CheckBox.Content>
-                        </CheckBox>
-                        <Label Content="Erase Block:" />
-                    </DockPanel>
+                    <CheckBox.Content>
+                        <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                    </CheckBox.Content>
+                </CheckBox>
+                <Label Content="Erase Block:" />
+            </DockPanel>
 
-                    <DockPanel LastChildFill="True">
-                        <CheckBox IsChecked="{Binding EraseRegionEnabled.Value}" 
+            <DockPanel LastChildFill="True">
+                <CheckBox IsChecked="{Binding EraseRegionEnabled.Value}" 
                                       HorizontalAlignment="Center" VerticalAlignment="Center"
                                       DockPanel.Dock="Right">
-                            <CheckBox.Content>
-                                <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
-                            </CheckBox.Content>
-                        </CheckBox>
-                        <Label Content="Erase Region:" />
-                    </DockPanel>
-                </StackPanel>
-            </Expander>
+                    <CheckBox.Content>
+                        <Image Source="../Icons/eraser.ico" Width="16" Height="16" />
+                    </CheckBox.Content>
+                </CheckBox>
+                <Label Content="Erase Region:" />
+            </DockPanel>
+            
+            <Grid Height="14"/>
+            
+            <DockPanel LastChildFill="True">
+                <CheckBox IsChecked="{Binding MoveToLayerEnabled.Value}" 
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          DockPanel.Dock="Right">
+                    <CheckBox.Content>
+                        <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                    </CheckBox.Content>
+                </CheckBox>
+                <Label Content="Move to Layer:" />
+            </DockPanel>
 
-            <Expander Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="OptimizerExpander_OnCollapsed">
+            <DockPanel LastChildFill="True">
+                <CheckBox IsChecked="{Binding MoveRegionToLayerEnabled.Value}" 
+                          HorizontalAlignment="Center" VerticalAlignment="Center"
+                          DockPanel.Dock="Right">
+                    <CheckBox.Content>
+                        <Image Source="../Icons/layers.png" Width="16" Height="16" />
+                    </CheckBox.Content>
+                </CheckBox>
+                <Label Content="Move Region to Layer:" />
+            </DockPanel>
+
+            <Expander Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="OptimizerExpander_OnCollapsed" IsExpanded="False">
                 <Expander.HeaderTemplate>
                     <DataTemplate>
                         <Label Content="Optimizer" FontWeight="Bold" />
@@ -160,48 +184,6 @@
                     </DockPanel>
 
                     <Button Content="Break All" Command="{Binding BreakAllCommand}"/>
-                </StackPanel>
-            </Expander>
-
-            <Expander Header="{Binding}" Margin="0, 14, 0, 0" Padding="0,6,0,0" Collapsed="LayerExpander_OnCollapsed">
-                <Expander.HeaderTemplate>
-                    <DataTemplate>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*" />
-                                <ColumnDefinition Width="Auto" />
-                            </Grid.ColumnDefinitions>
-                            <Label Content="Layers" FontWeight="Bold"/>
-                            <CheckBox Grid.Column="1" IsChecked="{Binding HighlightLayer.Value}" HorizontalAlignment="Center" VerticalAlignment="Center" Content="(Highlight Active)"/>
-                        </Grid>
-                    </DataTemplate>
-                </Expander.HeaderTemplate>
-
-                <StackPanel Orientation="Vertical">
-
-                    <DockPanel LastChildFill="True">
-                        <CheckBox IsChecked="{Binding MoveToLayerEnabled.Value}" 
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      DockPanel.Dock="Right">
-                            <CheckBox.Content>
-                                <Image Source="../Icons/layers.png" Width="16" Height="16" />
-                            </CheckBox.Content>
-                        </CheckBox>
-                        <Label Content="Move to Layer:" />
-                    </DockPanel>
-
-                    <DockPanel LastChildFill="True">
-                        <CheckBox IsChecked="{Binding MoveRegionToLayerEnabled.Value}" 
-                                      HorizontalAlignment="Center" VerticalAlignment="Center"
-                                      DockPanel.Dock="Right">
-                            <CheckBox.Content>
-                                <Image Source="../Icons/layers.png" Width="16" Height="16" />
-                            </CheckBox.Content>
-                        </CheckBox>
-                        <Label Content="Move Region to Layer:" />
-                    </DockPanel>
-
-                    <local:LayerView Margin="0,0,6,0" />
                 </StackPanel>
             </Expander>
 

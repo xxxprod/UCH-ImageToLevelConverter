@@ -6,6 +6,7 @@
         xmlns:viewModels="clr-namespace:UCH_ImageToLevelConverter.ViewModels"
         xmlns:views="clr-namespace:UCH_ImageToLevelConverter.Views"
         xmlns:pt="http://propertytools.org/wpf"
+        xmlns:tools="clr-namespace:UCH_ImageToLevelConverter.Tools"
         mc:Ignorable="d"
         Title="Ultimate Chicken Horse Level Designer" Height="800" Width="1300"
         Icon="../Icons/UCH_32x32.png"
@@ -26,7 +27,7 @@
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*"/>
             <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="100" />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto" />
@@ -38,11 +39,11 @@
             <MenuItem Header="File" Style="{StaticResource TopLevelMenuItem}">
                 <MenuItem Header="Create New" Command="{Binding CreateNewLevelCommand}"/>
                 <MenuItem Header="Load from Image" Command="{Binding LoadImageCommand}"/>
+                <MenuItem Header="Save as..." Command="{Binding SaveLevelCommand}"/>
             </MenuItem>
         </Menu>
 
         <GridSplitter Grid.Column="0" Grid.Row="2" VerticalAlignment="Stretch" Width="5" IsEnabled="False" />
-        <GridSplitter Grid.Column="2" Grid.Row="2" VerticalAlignment="Stretch" Width="5" IsEnabled="False" />
 
         <views:LevelEditorToolsView Grid.Column="0" Grid.Row="2" />
 
@@ -53,91 +54,120 @@
             </Grid.RowDefinitions>
 
             <ToolBar ToolBarTray.IsLocked="True">
-                <Button Name="UndoButton" ToolTip="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo.Value}">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Style.Triggers>
-                                <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Opacity" Value="0.4"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                    <Button.Content>
-                        <Image Source="../Icons/undo.png" Width="16" Height="16" />
-                    </Button.Content>
-                </Button>
-                <Button ToolTip="Redo" Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo.Value}">
-                    <Button.Style>
-                        <Style TargetType="Button">
-                            <Style.Triggers>
-                                <Trigger Property="IsEnabled" Value="False">
-                                    <Setter Property="Opacity" Value="0.4"/>
-                                </Trigger>
-                            </Style.Triggers>
-                        </Style>
-                    </Button.Style>
-                    <Button.Content>
-                        <Image Source="../Icons/undo.png" Width="16" Height="16">
-                            <Image.LayoutTransform>
-                                <ScaleTransform ScaleX="-1" ScaleY="1"></ScaleTransform>
-                            </Image.LayoutTransform>
-                        </Image>
-                    </Button.Content>
-                </Button>
+                <StackPanel Orientation="Horizontal" Margin="0,0,20,0">
+                    <Button Name="UndoButton" ToolTip="Undo" Command="{Binding UndoCommand}" IsEnabled="{Binding CanUndo.Value}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.4"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Content>
+                            <Image Source="../Icons/undo.png" Width="16" Height="16" />
+                        </Button.Content>
+                    </Button>
+                    <Button ToolTip="Redo" Command="{Binding RedoCommand}" IsEnabled="{Binding CanRedo.Value}">
+                        <Button.Style>
+                            <Style TargetType="Button">
+                                <Style.Triggers>
+                                    <Trigger Property="IsEnabled" Value="False">
+                                        <Setter Property="Opacity" Value="0.4"/>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </Button.Style>
+                        <Button.Content>
+                            <Image Source="../Icons/undo.png" Width="16" Height="16">
+                                <Image.LayoutTransform>
+                                    <ScaleTransform ScaleX="-1" ScaleY="1"></ScaleTransform>
+                                </Image.LayoutTransform>
+                            </Image>
+                        </Button.Content>
+                    </Button>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="Size: " FontWeight="Bold" />
+                    <TextBlock Text="("/>
+                    <TextBlock Text="{Binding Blocks.Width}" />
+                    <TextBlock Text=", " />
+                    <TextBlock Text="{Binding Blocks.Height}" />
+                    <TextBlock Text=")" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="Level Fullness: " FontWeight="Bold" />
+                    <TextBlock Text="{Binding LevelFullness.Value}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left"  Margin="0,0,20,0">
+                    <TextBlock Text="Background: " FontWeight="Bold" VerticalAlignment="Center"/>
+                    <pt:ColorPicker Name="ColorPicker" DockPanel.Dock="Left" SelectedColor="{Binding LevelEditorTools.BackgroundColor.Value}" />
+                </StackPanel>
+
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center" Margin="0,0,20,0">
+                    <TextBlock Text="Selected Layer: " FontWeight="Bold" />
+
+                    <Grid>
+                        <Border Opacity="0.15" Name="BackgroundControl">
+                            <Border.Background>
+                                <SolidColorBrush Color="{Binding LevelEditorTools.HighlightedLayer.Value.Layer, Converter={tools:LayerColorConverter}}" />
+                            </Border.Background>
+                        </Border>
+                        <TextBlock Text="{Binding LevelEditorTools.HighlightedLayer.Value.Layer}" Margin="6,0,6,0"/>
+                    </Grid>
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" DockPanel.Dock="Right">
+                    <Label Content="Zoom: " FontWeight="Bold"/>
+                    <Button Content="-" VerticalAlignment="Center" Padding="6,0,6,0" Click="ZoomOutClicked"/>
+                    <Label Name="ZoomLabel" Content="100%" />
+                    <Button Content="+" VerticalAlignment="Center" Padding="6,0,6,0" Click="ZoomInClicked"/>
+                </StackPanel>
             </ToolBar>
 
-            <Grid Grid.Row="1">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <DockPanel LastChildFill="True">
-
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Left" VerticalAlignment="Center">
-                        <TextBlock Text="Size: " FontWeight="Bold" Margin="20,0,0,0"/>
-                        <TextBlock Text="("/>
-                        <TextBlock Text="{Binding Blocks.Width}" />
-                        <TextBlock Text=", " />
-                        <TextBlock Text="{Binding Blocks.Height}" />
-                        <TextBlock Text=")" />
-                        <TextBlock Text="Level Fullness: " FontWeight="Bold" Margin="20,0,0,0"/>
-                        <TextBlock Text="{Binding LevelFullness.Value}" />
-                        <TextBlock Text="Background: " FontWeight="Bold" Margin="20,0,0,0"/>
-                    </StackPanel>
-
-                    <pt:ColorPicker Name="ColorPicker" DockPanel.Dock="Left" SelectedColor="{Binding LevelEditorTools.BackgroundColor.Value}" />
-
-                    <StackPanel Orientation="Horizontal" DockPanel.Dock="Right" Margin="0,0,20,0">
-                        <Label Content="Zoom: " FontWeight="Bold"/>
-                        <Button Content="-" VerticalAlignment="Center" Padding="6,0,6,0" Click="ZoomOutClicked"/>
-                        <Label Name="ZoomLabel" Content="100%" />
-                        <Button Content="+" VerticalAlignment="Center" Padding="6,0,6,0" Click="ZoomInClicked"/>
-                    </StackPanel>
-
-                    <Grid></Grid>
-
-                </DockPanel>
-
-
-                <ScrollViewer Grid.Row="1" Name="ZoomBox" 
-                      PreviewMouseDown="Canvas_OnPreviewMouseDown"
-                      PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel"
-                      HorizontalScrollBarVisibility="Auto" 
-                      VerticalScrollBarVisibility="Auto"
-                      Background="Gray" SizeChanged="OnSizeChanged">
-                    <views:BlockGridView x:Name="BlockGridView"
-                                 PreviewMouseMove="Canvas_OnPreviewMouseMove" 
-                                 BlockDataChanged="BlockGridView_OnBlockDataChanged"
-                                 EmptyBlockColor="{Binding ElementName=ColorPicker, Path=SelectedColor}" />
-                </ScrollViewer>
-            </Grid>
+            <ScrollViewer Grid.Row="1" Name="ZoomBox" 
+                          PreviewMouseDown="Canvas_OnPreviewMouseDown"
+                          PreviewMouseWheel="ZoomBox_OnPreviewMouseWheel"
+                          HorizontalScrollBarVisibility="Auto" 
+                          VerticalScrollBarVisibility="Auto"
+                          Background="Gray" SizeChanged="OnSizeChanged">
+                <views:BlockGridView x:Name="BlockGridView"
+                                     PreviewMouseMove="Canvas_OnPreviewMouseMove" 
+                                     BlockDataChanged="BlockGridView_OnBlockDataChanged"
+                                     EmptyBlockColor="{Binding ElementName=ColorPicker, Path=SelectedColor}" />
+            </ScrollViewer>
         </Grid>
 
-        <StackPanel Grid.Column="3" Grid.Row="2" Orientation="Vertical" Margin="0, 14, 14, 14">
-            <Button Content="Save Level" Style="{DynamicResource ButtonStyle}" Command="{Binding Path=SaveLevelCommand}"/>
-        </StackPanel>
+
+        <ScrollViewer Grid.Column="3" Grid.Row="2" VerticalScrollBarVisibility="Auto">
+            <Expander Name="Expander" Padding="0,6,0,0" IsExpanded="{Binding LevelEditorTools.HighlightLayer.Value}">
+                <Expander.Style>
+                    <Style TargetType="Expander">
+                        <Setter Property="Margin" Value="14" />
+                        <Style.Triggers>
+                            <Trigger Property="IsExpanded" Value="False">
+                                <Setter Property="LayoutTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="90" />
+                                    </Setter.Value>
+                                </Setter>
+                                <Setter Property="Margin" Value="0" />
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Expander.Style>
+                <Expander.HeaderTemplate>
+                    <DataTemplate>
+                        <Label Name="ExpanderLabel"  Content="Layers" FontWeight="Bold"/>
+                    </DataTemplate>
+                </Expander.HeaderTemplate>
+                <views:LayerView DataContext="{Binding LevelEditorTools}" VerticalAlignment="Top"/>
+            </Expander>
+        </ScrollViewer>
     </Grid>
 </Window>

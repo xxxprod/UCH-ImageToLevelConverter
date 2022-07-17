@@ -44,6 +44,8 @@ public class LevelEditorToolsViewModel : ViewModelBase
         foreach (LayerViewModel layer in Layers.Values)
             layer.IsVisible.OnChanged += _ => OnLayerVisibilityChanged(layer);
 
+        AllLayersVisible.OnChanged += _ => OnLayerVisibilityChanged(null);
+
         HighlightedLayer.OnChanged += OnHighlightedLayerChanged;
         HighlightLayer.OnChanged += highlight =>
         {
@@ -51,6 +53,8 @@ public class LevelEditorToolsViewModel : ViewModelBase
             {
                 MoveToLayerEnabled.Value = false;
                 MoveRegionToLayerEnabled.Value = false;
+                Layers[Layer.Default].IsVisible.Value = true;
+                HighlightedLayer.Value = Layers[Layer.Default];
             }
 
             OnToolsUpdated();
@@ -90,6 +94,7 @@ public class LevelEditorToolsViewModel : ViewModelBase
     public IntProperty ColorSimilarityPercentage { get; } = new(80, 0, 100);
 
     public Dictionary<Layer, LayerViewModel> Layers { get; }
+    public Property<bool?> AllLayersVisible { get; } = new(true);
     public Property<LayerViewModel> HighlightedLayer { get; } = new();
 
     public IEnumerable<Layer> GetActiveLayers()
@@ -106,9 +111,33 @@ public class LevelEditorToolsViewModel : ViewModelBase
         }
     }
 
+    private bool _layersVisibilityChanging = false;
     private void OnLayerVisibilityChanged(LayerViewModel layer)
     {
+        if (_layersVisibilityChanging)
+            return;
+        _layersVisibilityChanging = true;
+        if (layer == null)
+        {
+            if (AllLayersVisible.Value != null)
+            {
+                foreach (LayerViewModel layerViewModel in Layers.Values)
+                    layerViewModel.IsVisible.Value = AllLayersVisible.Value.Value;
+            }
+        }
+        else
+        {
+            int visibleCount = Layers.Values.Count(a => a.IsVisible);
+            if (visibleCount == Layers.Count)
+                AllLayersVisible.Value = true;
+            else if (visibleCount == 0)
+                AllLayersVisible.Value = false;
+            else
+                AllLayersVisible.Value = null;
+        }
+
         OnToolsUpdated();
+        _layersVisibilityChanging = false;
     }
 
     private void OnHighlightedLayerChanged(LayerViewModel layer)
