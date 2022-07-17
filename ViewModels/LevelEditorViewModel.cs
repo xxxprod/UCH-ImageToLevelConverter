@@ -213,19 +213,20 @@ public class LevelEditorViewModel : ViewModelBase
         return Blocks.ReplaceBlocks(optimizer.Optimize(LevelEditorTools.ColorSimilarityPercentage));
     }
 
-    private IEnumerable<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
+    private IList<BlockData> UpdateBlocks(BlockData origin, bool onlyFirstBlock,
         Func<BlockData, IEnumerable<BlockData>> updateBlock)
     {
         IEnumerable<BlockData> blocksWithSameColor = GetRegionBlocks(origin);
 
+        List<BlockData> updatedBlocks = new();
         foreach (BlockData block in blocksWithSameColor)
         {
-            foreach (BlockData updated in updateBlock(block))
-                yield return updated;
+            updatedBlocks.AddRange(updateBlock(block));
 
             if (onlyFirstBlock)
-                yield break;
+                break;
         }
+        return updatedBlocks;
     }
 
     private IEnumerable<BlockData> GetRegionBlocks(BlockData blockData)
